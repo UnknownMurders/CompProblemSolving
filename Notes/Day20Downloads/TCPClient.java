@@ -12,6 +12,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
+
 /**
  * TCP Client
  * Fairly complete client. Connects / disconnects / sends a message and awaits a reply
@@ -32,9 +33,6 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
    private TextField tfServerIP = new TextField();
    private Button btnConnect = new Button("Connect");
 
-   // These will be in Row2
-   private Label lblSentence = new Label("Sentence: ");
-   private TextField tfSentence = new TextField();
    private Button btnSend = new Button("Send");
    
    // Compoonents - BOT
@@ -45,17 +43,10 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
    // IO attributes
    private DataInputStream in = null;
    private DataOutputStream out = null;
-   private DataInputStream dis = null;
-   private FileInputStream fis = null;
-   private DataInputStream fin = null;
-   String test = null;
-
 
    // OTHER attributes
    public static final int SERVER_PORT = 49153;
    private Socket socket = null;
-   File myFile = new File("test.txt");
-   
 
    /**
     * main program 
@@ -87,11 +78,9 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
       // ROW2 - Textfield for a sentence to send and Send button
       FlowPane fpRow2 = new FlowPane(8,8);
       fpRow2.setAlignment(Pos.CENTER);
-      tfSentence.setPrefColumnCount(24);
-      fpRow2.getChildren().addAll(lblSentence, tfSentence, btnSend);
+      fpRow2.getChildren().addAll(btnSend);
          
          // tfSentence and btnSend disabled until connected
-      tfSentence.setDisable(true);
       btnSend.setDisable(true);
       root.getChildren().add(fpRow2);
       
@@ -149,7 +138,6 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
       btnConnect.setText("Disconnect");
       
       // Enable text field and Send button
-      tfSentence.setDisable(false);
       btnSend.setDisable(false);
    }
 
@@ -170,7 +158,6 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
       btnConnect.setText("Connect");
       
       // Disable text field and Send button
-      tfSentence.setDisable(true);
       btnSend.setDisable(true);
    }
 
@@ -178,51 +165,18 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
     * doSend - Send button'
     */
    private void doSend() {
-      String fileRead = "";
-     // File myFile = new File("test.txt");
-      // Get the sentence, send to server, wait for reply
-      try {
-         
-       //  File fileObj = new File("test.txt");
-        // fis = new FileInputStream(fileObj);
-        // dis = new DataInputStream(fis);
-         
-         //DataInputStream fin = new DataInputStream(new FileInputStream(myFile));
-         //int fileLength = (int)myFile.length();
-         //out.writeInt(fileLength);
-         
-        // taLog.appendText("Preparing to send file\n");
-        // taLog.appendText("File is " + fileLength + " bytes\n");
-         
-         //for (int i = 0; i < (1 - fileLength); i++)
-        // {
-        //    byte b = fin.readByte();
-         //   out.writeByte(b);
-         //   taLog.appendText("Sending byte " + (i + 1) + ": " + b + "\n");
-       //  }
-       
-         try {
-            int number = Integer.parseInt(tfSentence.getText());
-            taLog.appendText("Sent: " + number + "\n");
-            tfSentence.setText(null);
-            int reply = in.readInt();
-            taLog.appendText("Reply: " + reply + "\n");
-         
-         }
-         catch (Exception e) 
-         {
-         
-            taLog.appendText("Error during transmission: " + e + "\n");
-         }
-       
-       
-         taLog.appendText("Done sending file\n");
-         in.readInt();
-         taLog.appendText("Server has received the file!\n");
-         
-         out.flush();
-         fin.close();
+   
+      int fileRead = 987654321;
       
+      // --- OR --- //
+      
+      
+
+      try {
+         out.writeInt(fileRead);
+         taLog.appendText("Sent: " + fileRead + "\n");
+         String reply = in.readUTF();
+         taLog.appendText("Reply: " + reply + "\n");
       }
       catch(Exception e) {
          taLog.appendText("Error during transmission: " + e + "\n");
@@ -231,5 +185,4 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
       taLog.appendText("Disconnected from server!\n");
       doDisconnect();
    }
-
 }

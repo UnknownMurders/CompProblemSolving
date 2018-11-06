@@ -7,6 +7,7 @@ import javafx.scene.text.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
 import javafx.geometry.*;
+import java.util.Collections;
 
 import java.net.*;
 import java.io.*;
@@ -20,6 +21,8 @@ import java.util.*;
  */
 public class TCPServerMT extends Application implements EventHandler<ActionEvent> {
    // Window attributes
+   ArrayList<Integer> arrayList = new ArrayList<Integer>(); 
+
    private Stage stage;
    private Scene scene;
    private VBox root;
@@ -108,7 +111,7 @@ public class TCPServerMT extends Application implements EventHandler<ActionEvent
             sSocket = new ServerSocket(SERVER_PORT);
          }
          catch(IOException ioe) {
-            log("erverThread: IO Exception (1): "+ ioe + "\n");
+            log("SERVERSIDE ServerThread: IO Exception (1): "+ ioe + "\n");
             return;
          }
           
@@ -140,7 +143,7 @@ public class TCPServerMT extends Application implements EventHandler<ActionEvent
             sSocket.close();  // This terminates any blocked accepts
          }
          catch(Exception e) {
-            log("ServerThread: Exception: " + e + "\n");
+            log("SERVERSIDE ServerThread: Exception: " + e + "\n");
          }
       }
    } // of ServerThread
@@ -170,24 +173,40 @@ public class TCPServerMT extends Application implements EventHandler<ActionEvent
             out = new DataOutputStream(cSocket.getOutputStream());            
          }
          catch(IOException ioe) {
-            log(clientId + " IO Exception (ClientThread): "+ ioe + "\n");
+            log(clientId + "SERVERSIDE IO Exception (ClientThread): "+ ioe + "\n");
             return;
          }
-         ArrayList arrayList = new ArrayList(); 
       
          try {
             int line = in.readInt();
             taLog.appendText("Received: " + line + "\n");
             
            // line = line.toUpperCase();
-            taLog.appendText("Replying: " + line + "\n"); 
-            out.writeInt(line);
-            System.out.println(line);
+            
             
             arrayList.add(line);
+            
+            try 
+            {
+               for (int i = 0; i > arrayList.size(); i++)
+               {
+                  System.out.println(arrayList.get(i));
+               } 
+            }
+            catch (Exception e)
+            {
+               System.out.println("error");
+            }
+           
+               
+            System.out.println(arrayList);
+            out.writeUTF("Written test");
+            taLog.appendText("Replying: " + line + "\n"); 
+         
+            
          }
          catch(Exception e) {
-            taLog.appendText("Error during transmission: " + e + "\n");
+            taLog.appendText("SERVERSIDE Error during transmission: " + e + "\n ");
          }
       
          // on EOF, client has disconnected 
@@ -198,7 +217,7 @@ public class TCPServerMT extends Application implements EventHandler<ActionEvent
             out.close();
          }
          catch(IOException ioe) {
-            log(clientId + " IO Exception (3): "+ ioe + "\n");
+            log(clientId + "SERVERSIDE IO Exception (3): "+ ioe + "\n");
             return;
          }
          
@@ -216,3 +235,4 @@ public class TCPServerMT extends Application implements EventHandler<ActionEvent
          } );
    } // of log  
 }
+
