@@ -12,14 +12,13 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
-
 /**
  * TCP Client
  * Fairly complete client. Connects / disconnects / sends a message and awaits a reply
  * Connect/disconnect button allows multiple interactions
- * @author Pete Lutz
  * @version 9-16-2017
  */
+ 
 public class TCPClient extends Application implements EventHandler<ActionEvent> {
    // Window Attributes
    private Stage stage;
@@ -33,6 +32,9 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
    private TextField tfServerIP = new TextField();
    private Button btnConnect = new Button("Connect");
 
+   // These will be in Row2
+   private Label lblSentence = new Label("Sentence: ");
+   private TextField tfSentence = new TextField();
    private Button btnSend = new Button("Send");
    
    // Compoonents - BOT
@@ -43,10 +45,18 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
    // IO attributes
    private DataInputStream in = null;
    private DataOutputStream out = null;
+   private DataInputStream dis = null;
+   private FileInputStream fis = null;
+   private DataInputStream fin = null;
+   String test = null;
+
 
    // OTHER attributes
    public static final int SERVER_PORT = 49153;
    private Socket socket = null;
+   File myFile = new File("test.txt");
+   
+  
 
    /**
     * main program 
@@ -60,7 +70,7 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
     */
    public void start(Stage _stage) {
       stage = _stage;
-      stage.setTitle("TCP Client1");
+      stage.setTitle("TCP Client");
       stage.setOnCloseRequest(
          new EventHandler<WindowEvent>() {
             public void handle(WindowEvent evt) { System.exit(0); }
@@ -78,9 +88,11 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
       // ROW2 - Textfield for a sentence to send and Send button
       FlowPane fpRow2 = new FlowPane(8,8);
       fpRow2.setAlignment(Pos.CENTER);
-      fpRow2.getChildren().addAll(btnSend);
+      tfSentence.setPrefColumnCount(24);
+      fpRow2.getChildren().addAll(lblSentence, tfSentence, btnSend);
          
          // tfSentence and btnSend disabled until connected
+      tfSentence.setDisable(true);
       btnSend.setDisable(true);
       root.getChildren().add(fpRow2);
       
@@ -138,6 +150,7 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
       btnConnect.setText("Disconnect");
       
       // Enable text field and Send button
+      tfSentence.setDisable(false);
       btnSend.setDisable(false);
    }
 
@@ -158,6 +171,7 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
       btnConnect.setText("Connect");
       
       // Disable text field and Send button
+      tfSentence.setDisable(true);
       btnSend.setDisable(true);
    }
 
@@ -165,24 +179,34 @@ public class TCPClient extends Application implements EventHandler<ActionEvent> 
     * doSend - Send button'
     */
    private void doSend() {
-   
-      int fileRead = 987654321;
       
-      // --- OR --- //
-      
-      
+      int readInt = 123;   
 
-      try {
-         out.writeInt(fileRead);
-         taLog.appendText("Sent: " + fileRead + "\n");
-         String reply = in.readUTF();
-         taLog.appendText("Reply: " + reply + "\n");
-      }
-      catch(Exception e) {
-         taLog.appendText("Error during transmission: " + e + "\n");
-      }
-      
-      taLog.appendText("Disconnected from server!\n");
-      doDisconnect();
-   }
+  
+
+       
+         try {
+         
+            int number = Integer.parseInt(tfSentence.getText());
+            out.writeInt(number);
+            taLog.appendText("Sent: " + number + "\n");
+            taLog.appendText("Done sending integers\n");
+            tfSentence.setText(null);
+            int reply = in.readInt();
+            taLog.appendText("Reply: " + reply + "\n");
+            taLog.appendText("Server has received the integers!\n");
+            
+//             out.writeInt(readInt);
+//             taLog.appendText("Sent: " + readInt + "\n");
+//             String reply = in.readUTF();
+//             taLog.appendText("Reply: " + reply + "\n");
+         
+         }
+         catch (Exception e) {
+            taLog.appendText("Error during transmission: " + e + "\n");
+         }
+         
+         taLog.appendText("Disconnected from server!\n");
+         doDisconnect();
+  }
 }
