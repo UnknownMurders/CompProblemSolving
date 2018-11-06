@@ -1,0 +1,4 @@
+J. Watson:12545:Comp. Sci.:3.2
+T. Wilson:39827:Info. Tech.:2.8
+P. Moore:88279:Psych:3.8
+U. Bailey:45563:EE:2.7

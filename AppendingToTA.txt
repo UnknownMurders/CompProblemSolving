@@ -1,0 +1,10 @@
+Appending to Text Area from Text Files: 
+
+try
+{
+	scn = new Scanner(new FileInputStream(selectedFile));
+}
+catch (Exception e)
+{
+	[insert exception error/alert]
+}

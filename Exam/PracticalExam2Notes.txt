@@ -1,0 +1,22 @@
+Client - MT Server
+
+CLIENT SIDE
+- CONNECT TO SERVER
+- CLICK SEND DATA BUTTON --> SENDS DATA TO THE SERVER
+- SEND "SOME AMOUNT OF DATA" TO SERVER
+--WHAT IS "SOME AMOUNT OF DATA"
+- RECEIVE DATA FROM SERVER
+
+SERVER SIDE
+- RECEIVE DATA
+- STORE DATA IN ARRAYLIST
+- SEND DATA TO BACH TO CLIENT USING THE ARRAYLIST
+
+(ARRAYLIST PER CLIENT)
+
+We will be given GUI. We will be given handler. GUI Components will be added.
+
+socket = new Socket(tfServerIP.getText(), SERVER_PORT);
+
+You don't need to get the HostAddress but you do need to get the port
+- - String clientID = cSocket.getPort() + ":";

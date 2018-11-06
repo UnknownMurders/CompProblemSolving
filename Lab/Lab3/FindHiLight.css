@@ -1,0 +1,4 @@
+.text-input {
+    -fx-highlight-fill: lightgray;
+    -fx-highlight-text-fill: red;
+}
