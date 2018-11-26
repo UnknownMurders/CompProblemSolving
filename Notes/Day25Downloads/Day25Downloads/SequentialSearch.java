@@ -4,9 +4,9 @@ public class SequentialSearch {
       int target = -99999;
       
       try {
-         target = 21;
+         target = 33;
          int found = sequentialSearch(data, target);
-         System.out.println("" + target + " found at location " + found);
+         //System.out.println("" + target + " found at location " + found);
       }
       catch(Exception e) {
          System.out.println(e);
@@ -14,9 +14,12 @@ public class SequentialSearch {
    }
       
    static int sequentialSearch(int[] array, int target) throws Exception {
+         int num_iterations = 0;
       for(int location = 0; location < array.length; location++) {
+         num_iterations++;
  		 	if(target == array[location]) 	   // FOUND IT!
- 			 	return location;
+      
+         System.out.println("" + target + " found at location " + location + " in " + num_iterations + " iterations");
  		}
       throw new Exception("Value: " + target + " not found");	
  	}

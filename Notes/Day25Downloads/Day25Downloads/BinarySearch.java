@@ -6,7 +6,7 @@ public class BinarySearch {
       try {
          target = 42;
          int found = binarySearch(data, target);
-         System.out.println("" + target + " found at location " + found);
+        // System.out.println("" + target + " found at location " + found);
       }
       catch(Exception e) {
          System.out.println(e);
@@ -14,20 +14,30 @@ public class BinarySearch {
    }
       
    static int binarySearch(int[] array, int target) throws Exception {
- 		int start = 0;
- 		int stop = array.length-1;
- 		while(start < stop) {
- 		 	int location = (start + stop) / 2;
- 		 	if(target == array[location]) 	   // FOUND IT!
- 			 	return location;
- 		 	else if(target < array[location])	// Look in 1st half of array
- 			 	stop = location - 1;
- 		 	else if(target > array[location])	// Look in 2nd half of array
- 			 	start = location + 1;
- 		}
- 		if(target == array[start])
- 			return start;	// Found it at the end of the search
- 		else
- 			throw new Exception("Value: " + target + " not found");	
- 	}
+      int start = 0;
+      int stop = array.length-1;
+      int num_iterations = 0;
+      while(start < stop) {
+         int location = (start + stop) / 2;
+         num_iterations++;
+         if(target == array[location]) 	   // FOUND IT!
+          	//return location;
+            System.out.println("" + target + " found at location " + location + " in " + num_iterations + " iterations");
+         else if(target < array[location])	// Look in 1st half of array
+         {
+            stop = location - 1;
+            System.out.println("" + target + " found at location " + location + " in " + num_iterations + " iterations");
+         }
+            
+         else if(target > array[location])	// Look in 2nd half of array
+         {
+            start = location + 1;
+            System.out.println("" + target + " found at location " + location + " in " + num_iterations + " iterations");
+         }
+      }
+      if(target == array[start])
+         return start;	// Found it at the end of the search
+      else
+         throw new Exception("Value: " + target + " not found");	
+   }
 }
