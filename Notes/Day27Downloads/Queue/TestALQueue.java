@@ -43,12 +43,7 @@ public class TestALQueue extends javafx.application.Application implements Event
     stage.setTitle("Test ALQueue");
     int WIDTH = 400;
     int HEIGHT = 300;
-    stage.setOnCloseRequest(new EventHandler() {
-      public void handle(WindowEvent evt) {
-        System.exit(0);
-      }
-      
-    });
+    
     root.getChildren().add(taDisplay);
     
 

@@ -43,12 +43,7 @@ public class TestALStack extends javafx.application.Application implements Event
     stage.setTitle("Test ALStack");
     int WIDTH = 400;
     int HEIGHT = 300;
-    stage.setOnCloseRequest(new EventHandler() {
-      public void handle(WindowEvent evt) {
-        System.exit(0);
-      }
-      
-    });
+  
     root.getChildren().add(taDisplay);
     
 
