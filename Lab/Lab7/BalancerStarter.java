@@ -45,8 +45,15 @@ public class BalancerStarter {
             }
          
          }
+         
+         
       
       }
+      if (!stack.isEmpty())
+         System.out.println("The equation is unbalanced."); 
+         
+      else 
+         System.out.println("The equation is balanced.");
    }
 }
 
