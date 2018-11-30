@@ -141,7 +141,6 @@ public class Client extends Application implements EventHandler<ActionEvent> {
       String label = ((Button)ae.getSource()).getText();
       switch(label) {
          case "Connect":
-          //TEST CODE  
             doConnect();
             break;
          case "Disconnect":
