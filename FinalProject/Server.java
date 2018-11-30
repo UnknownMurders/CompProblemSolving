@@ -1,13 +1,3 @@
-/**
- * TCP Client
- * Allows client to send a color image file to the server 
- * and requests that the server return either a grayscale,
- * negative, or sepia version of the image. 
- * @author Trent Jacobson, Edward Riley, William Gardner, Melody Kabbai	
- * @version 11-9-2018
- * @Purpose FINAL PROJECT
- */
- 
 import javafx.application.*;
 import javafx.event.*;
 import javafx.scene.*;
@@ -20,6 +10,13 @@ import javafx.geometry.*;
 import java.net.*;
 import java.io.*;
 import java.util.*;
+
+
+import java.io.File;
+import java.io.IOException;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+
  
 public class Server extends Application implements EventHandler<ActionEvent> {
    // Window attributes
@@ -183,8 +180,8 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          // - Sent back to Server
          
          
-
-// EXAMPLE -->  BUT PLEASE ADJUST IT AS WELL. <--   
+      
+      // EXAMPLE -->  BUT PLEASE ADJUST IT AS WELL. <--   
          try {
             String line = in.readUTF();
             taLog.appendText("Received: " + line + "\n");
@@ -221,4 +218,39 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             }
          } );
    } // of log  
+   
+
+   public void doGreyscale()
+   {
+      BufferedImage greyscaleImage = null;
+      File f = null;
+      
+      //
+      int width = greyscaleImage.getWidth();
+      int height = greyscaleImage.getHeight();
+      
+      //converts to greyscale
+      for (int y = 0; y < height; y++)
+      {
+         for (int x = 0; x < width; x++)
+         {
+            int p = greyscaleImage.getRGB(x,y);
+         
+            int a = (p>>24)&0xff;
+            int r = (p>>16)&0xff;
+            int g = (p>>8)&0xff;
+            int b = p&0xff;
+         
+         //calculate average
+            int avg = (r+g+b)/3;
+         
+         //replace RGB value with avg
+            p = (a<<24) | (avg<<16) | (avg<<8) | avg;
+         
+            greyscaleImage.setRGB(x, y, p);
+         }
+      }
+      
+   
+   }
 }
