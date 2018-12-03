@@ -262,8 +262,10 @@ public class Client extends Application implements EventHandler<ActionEvent> {
          out.writeUTF(radioChoice);
          receivedString = in.readUTF();
          taLog.appendText(receivedString + " has been successfully sent!\n");
-      
          
+         receivedString = in.readUTF();
+         taLog.appendText(receivedString + " has been successfully received!\n");
+        
          fis = new FileInputStream(selectedFile);
          while ((i = fis.read()) > -1)
          {
@@ -272,7 +274,7 @@ public class Client extends Application implements EventHandler<ActionEvent> {
       
          out.write(-1);
          
-         
+      
          
          fis.close();
          out.close();

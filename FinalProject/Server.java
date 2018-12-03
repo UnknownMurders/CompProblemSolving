@@ -208,17 +208,28 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             {
                case "Greyscale": 
                   System.out.println("Greyscale");
+                  radioChoice = "_greyscale";
                   break;
                case "Sepia": 
                   System.out.println("Sepia");
+                  radioChoice = "_sepia";
                   break;
                case "Negative": 
                   System.out.println("Negative");
+                  radioChoice = "_negative";
                   break;
                default: 
                   System.out.println("No Active Radio Buttons");
                   break; 
             }
+            String newFileName = fileName;
+            
+            
+            if (fileName.indexOf(".") > 0)
+               fileName = fileName.substring(0, fileName.lastIndexOf("."));
+         
+            out.writeUTF(fileName + radioChoice + "." + extension);
+            taLog.appendText("Sending Converted File: " + fileName + radioChoice + "." + extension);
             
             //Client to Server file building
             File file = new File("temp");
@@ -238,7 +249,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                   readFlag = (data != -1);
                   if (readFlag){
                      dos.write(data);
-                     System.out.println(data);
+                    // System.out.println(data);
                   }
                }
                catch(IOException ioe)
@@ -246,12 +257,13 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                   log(clientId+"io error on file write");
                }
             }
-         
+          
          }
          catch(Exception e) {
             taLog.appendText("Error during transmission: " + e + "\n");
          }
       
+         
          // on EOF, client has disconnected 
          try {
             // Close the Socket and the streams
