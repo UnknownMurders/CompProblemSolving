@@ -199,20 +199,20 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             taLog.appendText("Sending: " + extension + " \n");
             out.writeUTF(extension);
             
-            int radioChoice = in.readInt();
+            String radioChoice = in.readUTF();
             taLog.appendText("Received: " + radioChoice + "\n");
             taLog.appendText("Sending: " + radioChoice + " \n");
-            out.write(radioChoice);
+            out.writeUTF(radioChoice);
             
             switch (radioChoice)
             {
-               case 0: 
+               case "Greyscale": 
                   System.out.println("Greyscale");
                   break;
-               case 1: 
+               case "Sepia": 
                   System.out.println("Sepia");
                   break;
-               case 2: 
+               case "Negative": 
                   System.out.println("Negative");
                   break;
                default: 

@@ -214,8 +214,8 @@ public class Client extends Application implements EventHandler<ActionEvent> {
       double receivedDouble = 0;
       String receivedString = "";
       String extension = "";
-      int radioChoice = 0;
-      int receivedInt = 0;
+      String radioChoice = "";
+      
       try 
       {
          out.writeDouble(bytes);
@@ -239,27 +239,30 @@ public class Client extends Application implements EventHandler<ActionEvent> {
          
          if (rbGreyscale.isSelected())
          {
-            radioChoice = 0;
+            radioChoice = "Greyscale";
             System.out.println("GREYSCALE IS ON");
          
          }
          else if (rbSepia.isSelected())
          {
-            radioChoice = 1;
+            radioChoice = "Sepia";
             System.out.println("SEPIA IS ON");
          }
          else if (rbNegative.isSelected())
          {
-            radioChoice = 2;
+            radioChoice = "Negative";
             System.out.println("NEGATIVE IS ON");
          }
          else
          {
-            radioChoice = -1;
+            radioChoice = "invalid";
             System.out.println("NO ACTIVE RADIO BUTTON");
          }
       
-         out.write(radioChoice);
+         out.writeUTF(radioChoice);
+         receivedString = in.readUTF();
+         taLog.appendText(receivedString + " has been successfully sent!\n");
+      
          
          fis = new FileInputStream(selectedFile);
          while ((i = fis.read()) > -1)
