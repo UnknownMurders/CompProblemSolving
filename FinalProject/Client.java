@@ -199,37 +199,61 @@ public class Client extends Application implements EventHandler<ActionEvent> {
     * doSend - Send button'
     */
    private void doSendImage() {
+      int i = 0;
       
-     
       FileChooser fileChooser = new FileChooser();
       fileChooser.setTitle("Pick an Image");
       FileChooser.ExtensionFilter extFilter = 
                         new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.jpeg", "*.png");
       File selectedFile = fileChooser.showOpenDialog(stage);
-     
-      int i = 0;
+   
+      double bytes = selectedFile.length();
+      String fileName = selectedFile.getName();
+      
+      FileInputStream fis = null;
+      try 
+      {
+        out.writeDouble(bytes);
+        out.writeUTF(fileName);
+                
+        //fis = new FileInputStream(selectedFile);
+          
+      
+         //while ((i = fis.read()) > -1)
+        // {
+        //    out.write(i);
+        // }
+
+        // out.write(-1);
+         fis.close();
+         out.close();
+         socket.close();
+      }
+      catch (Exception e) { }
+      /*
+      try
+      {
+         DataOutputStream dos = new DataOutputStream(fis);
+      }
+      catch (Exception e) { }
+      */
+      
+      /* int i = 0;
       FileInputStream fis = null;
       try
       {
          fis = new FileInputStream (selectedFile);
       }
       catch (Exception e) { }
-      DataOutputStream os = null;
-      try 
-      {
-         os = new DataOutputStream(socket.getOutputStream());
-      }
-      
-      catch (Exception e) { }
       try {
          while ((i = fis.read()) > -1)
-            os.write(i);
+            out.write(i);
       }
       catch (Exception e) { }
      
       try {
          fis.close();
-         os.close();
+         out.close();
          socket.close();
       }
       catch (Exception e) { } 
@@ -237,7 +261,7 @@ public class Client extends Application implements EventHandler<ActionEvent> {
       if (rbGreyscale.isSelected())
             {
                System.out.println("GREYSCALE WAS ON");
-
+   
             }
             else if (rbSepia.isSelected())
             {
@@ -251,6 +275,12 @@ public class Client extends Application implements EventHandler<ActionEvent> {
             {
                System.out.println("NO ACTIVE RADIO BUTTON");
             }
+      
+       end 
+      */
+      
+      
+      
       
       
       //TEST CODE BETWEEN SERVER AND CLIENT TO ENSURE THAT CONNECTION IS "NOMINAL" 
@@ -268,7 +298,7 @@ public class Client extends Application implements EventHandler<ActionEvent> {
       */
    
             
-      doDisconnect();
+    //  doDisconnect();
    }
 
 }

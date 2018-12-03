@@ -183,11 +183,12 @@ public class Server extends Application implements EventHandler<ActionEvent> {
       
       // EXAMPLE -->  BUT PLEASE ADJUST IT AS WELL. <--   
          try {
-            String line = in.readUTF();
-            taLog.appendText("Received: " + line + "\n");
-            line = line.toUpperCase();
-            taLog.appendText("Replying: " + line + "\n"); 
-            out.writeUTF(line);
+            
+            double size = in.readDouble();
+            taLog.appendText("Received: " + size + "\n");
+            String fileName = in.readUTF();
+            taLog.appendText("Received: " + fileName + "\n");
+
          }
          catch(Exception e) {
             taLog.appendText("Error during transmission: " + e + "\n");
