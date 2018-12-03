@@ -198,7 +198,34 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             taLog.appendText("Received: " + extension + "\n");
             taLog.appendText("Sending: " + extension + " \n");
             out.writeUTF(extension);
-               
+            
+            //Client to Server file building
+            File file = new File("temp");
+            DataOutputStream dos = null;
+            try {
+               FileOutputStream fos = new FileOutputStream(file);
+               dos = new DataOutputStream(fos);
+            }
+            catch(Exception e)
+            {
+               log(clientId+"io error on temp file");
+            }
+            boolean readFlag=true;
+            while (readFlag){
+               try {
+                  int data = in.read();
+                  readFlag = (data != -1);
+                  if (readFlag){
+                     dos.write(data);
+                     System.out.println(data);
+                  }
+               }
+               catch(IOException ioe)
+               {
+                  log(clientId+"io error on file write");
+               }
+            }
+         
          }
          catch(Exception e) {
             taLog.appendText("Error during transmission: " + e + "\n");

@@ -233,16 +233,14 @@ public class Client extends Application implements EventHandler<ActionEvent> {
          receivedString = in.readUTF();
          taLog.appendText(receivedString + " has been successfully sent!\n");
          
+        fis = new FileInputStream(selectedFile);
+        while ((i = fis.read()) > -1)
+        {
+          out.write(i);
+        }
+      
+         out.write(-1);
          
-        //fis = new FileInputStream(selectedFile);
-          
-      
-         //while ((i = fis.read()) > -1)
-        // {
-        //    out.write(i);
-        // }
-      
-        // out.write(-1);
          fis.close();
          out.close();
          socket.close();
