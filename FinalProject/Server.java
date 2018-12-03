@@ -199,6 +199,27 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             taLog.appendText("Sending: " + extension + " \n");
             out.writeUTF(extension);
             
+            int radioChoice = in.readInt();
+            taLog.appendText("Received: " + radioChoice + "\n");
+            taLog.appendText("Sending: " + radioChoice + " \n");
+            out.write(radioChoice);
+            
+            switch (radioChoice)
+            {
+               case 0: 
+                  System.out.println("Greyscale");
+                  break;
+               case 1: 
+                  System.out.println("Sepia");
+                  break;
+               case 2: 
+                  System.out.println("Negative");
+                  break;
+               default: 
+                  System.out.println("No Active Radio Buttons");
+                  break; 
+            }
+            
             //Client to Server file building
             File file = new File("temp");
             DataOutputStream dos = null;

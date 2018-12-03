@@ -214,11 +214,14 @@ public class Client extends Application implements EventHandler<ActionEvent> {
       double receivedDouble = 0;
       String receivedString = "";
       String extension = "";
+      int radioChoice = 0;
+      int receivedInt = 0;
       try 
       {
          out.writeDouble(bytes);
          receivedDouble = in.readDouble();
          taLog.appendText(receivedDouble + " has been successfully sent!\n");
+         
          out.writeUTF(fileName);
          receivedString = in.readUTF();
          taLog.appendText(receivedString + " has been successfully sent!\n");
@@ -226,20 +229,47 @@ public class Client extends Application implements EventHandler<ActionEvent> {
          int index = fileName.lastIndexOf('.');
          if (index > 0) {
             
-             extension = fileName.substring(index + 1);
+            extension = fileName.substring(index + 1);
          }
          
          out.writeUTF(extension);
          receivedString = in.readUTF();
          taLog.appendText(receivedString + " has been successfully sent!\n");
          
-        fis = new FileInputStream(selectedFile);
-        while ((i = fis.read()) > -1)
-        {
-          out.write(i);
-        }
+         
+         if (rbGreyscale.isSelected())
+         {
+            radioChoice = 0;
+            System.out.println("GREYSCALE IS ON");
+         
+         }
+         else if (rbSepia.isSelected())
+         {
+            radioChoice = 1;
+            System.out.println("SEPIA IS ON");
+         }
+         else if (rbNegative.isSelected())
+         {
+            radioChoice = 2;
+            System.out.println("NEGATIVE IS ON");
+         }
+         else
+         {
+            radioChoice = -1;
+            System.out.println("NO ACTIVE RADIO BUTTON");
+         }
+      
+         out.write(radioChoice);
+         
+         fis = new FileInputStream(selectedFile);
+         while ((i = fis.read()) > -1)
+         {
+            out.write(i);
+         }
       
          out.write(-1);
+         
+         
          
          fis.close();
          out.close();
