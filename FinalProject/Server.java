@@ -186,9 +186,19 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             
             double size = in.readDouble();
             taLog.appendText("Received: " + size + "\n");
+            taLog.appendText("Sending: " + size + "\n");
+            out.writeDouble(size);
+            
             String fileName = in.readUTF();
             taLog.appendText("Received: " + fileName + "\n");
-
+            taLog.appendText("Sending: " + fileName + " \n");
+            out.writeUTF(fileName);
+            
+            String extension = in.readUTF();
+            taLog.appendText("Received: " + extension + "\n");
+            taLog.appendText("Sending: " + extension + " \n");
+            out.writeUTF(extension);
+               
          }
          catch(Exception e) {
             taLog.appendText("Error during transmission: " + e + "\n");

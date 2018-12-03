@@ -211,11 +211,29 @@ public class Client extends Application implements EventHandler<ActionEvent> {
       String fileName = selectedFile.getName();
       
       FileInputStream fis = null;
+      double receivedDouble = 0;
+      String receivedString = "";
+      String extension = "";
       try 
       {
-        out.writeDouble(bytes);
-        out.writeUTF(fileName);
-                
+         out.writeDouble(bytes);
+         receivedDouble = in.readDouble();
+         taLog.appendText(receivedDouble + " has been successfully sent!\n");
+         out.writeUTF(fileName);
+         receivedString = in.readUTF();
+         taLog.appendText(receivedString + " has been successfully sent!\n");
+      
+         int index = fileName.lastIndexOf('.');
+         if (index > 0) {
+            
+             extension = fileName.substring(index + 1);
+         }
+         
+         out.writeUTF(extension);
+         receivedString = in.readUTF();
+         taLog.appendText(receivedString + " has been successfully sent!\n");
+         
+         
         //fis = new FileInputStream(selectedFile);
           
       
@@ -223,7 +241,7 @@ public class Client extends Application implements EventHandler<ActionEvent> {
         // {
         //    out.write(i);
         // }
-
+      
         // out.write(-1);
          fis.close();
          out.close();
