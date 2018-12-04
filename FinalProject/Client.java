@@ -264,12 +264,13 @@ public class Client extends Application implements EventHandler<ActionEvent> {
          taLog.appendText(receivedString + " has been successfully sent!\n");
          
          receivedString = in.readUTF();
-         taLog.appendText(receivedString + " has been successfully received!\n");
+         taLog.appendText(receivedString + " has been successfully received!\n");         
         
+         
          fis = new FileInputStream(selectedFile);
          while ((i = fis.read()) > -1)
          {
-            out.write(i);
+           out.write(i);
          }
       
          out.write(-1);

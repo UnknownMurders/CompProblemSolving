@@ -249,7 +249,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                   readFlag = (data != -1);
                   if (readFlag){
                      dos.write(data);
-                    // System.out.println(data);
+                     System.out.println(data);
                   }
                }
                catch(IOException ioe)
@@ -291,8 +291,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    } // of log  
    
 
-   public void doGreyscale()
-   {
+   public void doGreyscale() {
       BufferedImage greyscaleImage = null;
       File f = null;
       
@@ -300,7 +299,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
       int width = greyscaleImage.getWidth();
       int height = greyscaleImage.getHeight();
       
-      //converts to greyscale
+      //grabs argb
       for (int y = 0; y < height; y++)
       {
          for (int x = 0; x < width; x++)
@@ -315,13 +314,82 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          //calculate average
             int avg = (r+g+b)/3;
          
-         //replace RGB value with avg
+         //reassign RGB value
             p = (a<<24) | (avg<<16) | (avg<<8) | avg;
          
             greyscaleImage.setRGB(x, y, p);
          }
       }
-      
+   }//end greyscale
    
-   }
+   public void doNegative() {
+      BufferedImage negativeImage = null;
+      File f = null;
+      
+      //
+      int width = negativeImage.getWidth();
+      int height = negativeImage.getHeight();
+      
+      //grabs argb
+      for (int y = 0; y < height; y++)
+      {
+         for (int x = 0; x < width; x++)
+         {
+            int p = negativeImage.getRGB(x,y);
+         
+            int a = (p>>24)&0xff;
+            int r = (p>>16)&0xff;
+            int g = (p>>8)&0xff;
+            int b = p&0xff;
+         
+         //assign new values
+            int new_a = a;
+            int r_new = 255 - r;
+            int g_new = 255 - g; 
+            int b_new = 255 - b;  
+            
+         
+         //reassign RGB value
+            p = (a<<24) | (r_new<<16) | (g_new<<8) | b_new;
+         
+            negativeImage.setRGB(x, y, p);
+         }
+      }
+   }//end sepia
+   
+   public void doSepia() {
+      BufferedImage sepiaImage = null;
+      File f = null;
+      
+      //
+      int width = sepiaImage.getWidth();
+      int height = sepiaImage.getHeight();
+      
+      //grabs argb
+      for (int y = 0; y < height; y++)
+      {
+         for (int x = 0; x < width; x++)
+         {
+            int p = sepiaImage.getRGB(x,y);
+         
+            int a = (p>>24)&0xff;
+            int r = (p>>16)&0xff;
+            int g = (p>>8)&0xff;
+            int b = p&0xff;
+         
+         //calculate average
+            int a_new = a; 
+            int r_new = (int)(0.393*r + 0.769*g + 0.189*b);
+            int g_new = (int)(0.349*r + 0.686*g + 0.168*b);
+            int b_new = (int)(0.272*r + 0.534*g + 0.131*b);
+                  
+         //reassign RGB value
+            p = (a_new<<24) | (r_new<<16) | (g_new<<8) | b_new;
+         
+            sepiaImage.setRGB(x, y, p);
+         }
+      }
+   }//end negative
+   
+   
 }
