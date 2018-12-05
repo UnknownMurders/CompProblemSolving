@@ -270,7 +270,10 @@ public class Client extends Application implements EventHandler<ActionEvent> {
          fis = new FileInputStream(selectedFile);
          while ((i = fis.read()) > -1)
          {
+           System.out.println(i); //to show how many BYTES are being transmitted to the server
            out.write(i);
+           
+           
          }
       
          out.write(-1);
