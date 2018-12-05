@@ -283,7 +283,7 @@ public class Client extends Application implements EventHandler<ActionEvent> {
       }
       catch (Exception e) { }
       /*
-      try
+      tryx
       {
          DataOutputStream dos = new DataOutputStream(fis);
       }
