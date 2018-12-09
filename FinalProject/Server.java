@@ -31,6 +31,12 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    // Socket stuff
    private ServerSocket sSocket = null;
    public static final int SERVER_PORT = 50000;
+   public static final int RUNNING_THREAD_COUNT=6;
+   public static final int NUMBER_OF_SECTORS=6;
+   public static final int MAX_CLIENTS=3;
+   public static final int CHECK_TIME_INTERVAL=500;
+   public static final int X_UNITS=3;
+   public static final int Y_UNITS=2;
    private ServerThread serverThread = null;
    
    /**
@@ -101,7 +107,11 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    }
    
    class ServerThread extends Thread {
-      public void run() {
+     private TaskQueueSystem tqs= null;
+     public ServerThread(){
+       tqs=new TaskQueueSystem(RUNNING_THREAD_COUNT,CHECK_TIME_INTERVAL,NUMBER_OF_SECTORS,MAX_CLIENTS,taLog);
+     }
+     public void run() {
          // Server stuff ... wait for a connection and process it
          try {
             sSocket = new ServerSocket(SERVER_PORT);
@@ -128,7 +138,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
              
             // Create a thread for the client, passing cSocket to the
             // thread’s constructor and start the thread...
-            ClientThread ct = new ClientThread(cSocket);
+            ClientThread ct = new ClientThread(cSocket,tqs);
             ct.start();      
             
          } // of while loop
@@ -149,11 +159,12 @@ public class Server extends Application implements EventHandler<ActionEvent> {
       // socket, unique to that client
       private Socket cSocket;
       private String clientId = "";
-   
+      private TaskQueueSystem tqs;   
       // Constructor for ClientThread
-      public ClientThread(Socket _cSocket) {
+      public ClientThread(Socket _cSocket,TaskQueueSystem _tqs) {
          cSocket = _cSocket;
          clientId = "<" + cSocket.getInetAddress().getHostAddress() + ">" + "<" + cSocket.getPort() + ">";
+         tqs=_tqs;
       }
       
       // main program for a ClientThread
@@ -181,24 +192,28 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          
       
       // EXAMPLE -->  BUT PLEASE ADJUST IT AS WELL. <--   
+         double size;
+         String fileName;
+         String extension;
+         String radioChoice;
          try {
             
-            double size = in.readDouble();
+            size = in.readDouble();
             taLog.appendText("Received: " + size + "\n");
             taLog.appendText("Sending: " + size + "\n");
             out.writeDouble(size);
             
-            String fileName = in.readUTF();
+            fileName = in.readUTF();
             taLog.appendText("Received: " + fileName + "\n");
             taLog.appendText("Sending: " + fileName + " \n");
             out.writeUTF(fileName);
             
-            String extension = in.readUTF();
+            extension = in.readUTF();
             taLog.appendText("Received: " + extension + "\n");
             taLog.appendText("Sending: " + extension + " \n");
             out.writeUTF(extension);
             
-            String radioChoice = in.readUTF();
+            radioChoice = in.readUTF();
             taLog.appendText("Received: " + radioChoice + "\n");
             taLog.appendText("Sending: " + radioChoice + " \n");
             out.writeUTF(radioChoice);
@@ -257,28 +272,61 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                }
             }
           
+            BufferedImage image = null;
+            try{
+
+                image = ImageIO.read(file);
+            
+            }
+            catch(IOException ioe){
+                log(clientId+": error during fileread.");
+            }
+            
+            boolean belowThreshold=false;
+            while(!belowThreshold){
+                if(tqs.getFilenameCount()<MAX_CLIENTS){
+                  for(int i = 0;i<Y_UNITS;i++){
+                     for(int k =0;k<X_UNITS;k++){
+                        SectorBuilder sb = new SectorBuilder(image,k,i,X_UNITS,Y_UNITS);
+                        Task task = new Task(sb,"builder",radioChoice,3,fileName,cSocket);
+                        tqs.add(task);
+                     }
+                  }
+                  belowThreshold=true;
+               }
+               else{ 
+                  try{
+                    Thread.sleep(CHECK_TIME_INTERVAL);
+                  }
+                  catch(InterruptedException ie)
+                  {
+                    log(clientId+":Programmus Interruptus");
+                  }
+               }
+            }
          }
+
          catch(Exception e) {
             taLog.appendText("Error during transmission: " + e + "\n");
          }
       
-         
-         // on EOF, client has disconnected 
-         try {
-            // Close the Socket and the streams
-            cSocket.close();
-            in.close();
-            out.close();
-         }
-         catch(IOException ioe) {
-            log(clientId + " IO Exception (3): "+ ioe + "\n");
-            return;
-         }
-         
-         log(clientId + " Client disconnected!\n");
+          
+          // on EOF, client has disconnected 
+          try {
+              // Close the Socket and the streams
+              cSocket.close();
+              in.close();
+              out.close();
+          }
+          catch(IOException ioe) {
+              log(clientId + " IO Exception (3): "+ ioe + "\n");
+              return;
+          }
+          
+          log(clientId + " Client disconnected!\n");
       }  
    } // End of inner class
-   
+    
    // utility method "log" to log a message in a thread safe manner
    private void log(String message) {
       Platform.runLater(
@@ -328,7 +376,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
       //
       int width = negativeImage.getWidth();
       int height = negativeImage.getHeight();
-      
+     
       //grabs argb
       for (int y = 0; y < height; y++)
       {
@@ -389,6 +437,308 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          }
       }
    }//end negative
+}
+class Sector{
+   private BufferedImage buffImg;
+   private int x,y,width,height;
+   public Sector(BufferedImage _buffImg,int _x,int _y,int _width,int _height){
+      buffImg=_buffImg;
+      x=_x;
+      y=_y;
+      width=_width;
+      height=_height;
+   }
+   public int getRGB(int _x,int _y){
+      if((_x >= width)||(_y>=height)||(_x<0)||(_y<0))
+      {
+         throw new IndexOutOfBoundsException();
+      }
+      return buffImg.getRGB((x+_x),(y+_y)); 
+   }
+   public void setRGB(int _x,int _y, int value){
+      if((_x >= width)||(_y>=height)||(_x<0)||(_y<0))
+      {
+         throw new IndexOutOfBoundsException();
+      }
+      buffImg.setRGB((x+_x),(y+_y),value);
+   }
+   public int getWidth(){
+      return width;
+   }
+   public int getHeight(){
+      return height;
+   }
+   public void setWidth(int _width){
+      width=_width;
+   }
+   public void setHeight(int _height){
+      height=_height;
+   }
+   public BufferedImage getImage(){
+      return buffImg;
+   }
+}
+class SectorBuilder extends Thread{
+   private BufferedImage buffImg;
+   private int sectionX, sectionY,xUnits,yUnits;
+   private Sector sect=null;
+   public SectorBuilder(BufferedImage _buffImg,int _sectionX,int _sectionY, int _xUnits,int _yUnits){
+      buffImg=_buffImg;
+      sectionX=_sectionX;
+      sectionY=_sectionY;
+      xUnits=_xUnits;
+      yUnits=_yUnits;
    
+      
+   }
+   public void run(){
+      int width = buffImg.getWidth()/xUnits;
+      int height= buffImg.getHeight()/yUnits;
+      if ((sectionX==(xUnits-1))&&((width % xUnits)>0)){
+         width += (buffImg.getWidth() % xUnits);
+      }
+      
+      if ((sectionY==(yUnits-1))&&((height % yUnits)>0)){
+         height += (buffImg.getHeight() % yUnits);
+      }
+      int x = width * sectionX;
+      int y = height * sectionY;
+      sect= new Sector(buffImg,x,y,width,height);
+   }
+   public int getSectorId(){
+      return ((sectionY*xUnits)+sectionX);
+   }
+   public Sector getSector(){
+      return sect;
+   }
+}
+class Task extends Thread implements Comparable<Task>{
+   private Thread work;
+   private String workType="";
+   private int taskId;
+   private String filename;
+   private String imageType;
+   private int priority;
+   private Socket cSocket;
+   public Task(Thread _work,String _workType,String _imageType,int _priority,String _filename,Socket _cSocket)
+   {
+      work = _work;
+      workType = _workType;
+      imageType= _imageType;
+      taskId = 0;
+      priority = _priority;
+      filename = _filename;
+      cSocket= _cSocket;
+   }
+   public void setTaskId(int id){
+      taskId=id;
+   }
+   public int getTaskPriority(){
+      return priority;
+   }
+   public String getFilename(){
+      return filename;
+   }
+   public String getImageType(){
+      return imageType;
+   }
+   public int compareTo(Task otherTask){
+      return (priority-otherTask.getTaskPriority());
+   }
+   public Socket getSocket(){
+      return cSocket;
+   }
+   public void run(){
+      switch(workType){
+            case "builder":
+               ((SectorBuilder)work).start();
+               break;
+            case "imageProcessing":
+               ((ImageProcessing)work).start();
+               break;
+            case "sendingFile":
+               ((SendImage)work).start();
+               break;
+      }
+      try {
+         work.join();
+
+      }catch(InterruptedException ie)
+      {
+         System.out.println("Task "+taskId+" Interrupted");
+      }
+
+   }
+   public String getWorkType(){
+      return workType;
+   }
+   public Thread getWork(){
+      return work;
+   }
+}
+class TaskQueueSystem extends Thread{
+   private TextArea taLog;
+   private PriorityQueue<Task> taskPool;
+   private int runningThreadCount;
+   private int checkTimeInterval;
+   private int taskIdCounter=0;
+   private int numberOfSectors;
+   private LinkedList<Task> runningThreads;
+   private LinkedList<LinkedList<Task>> imageProcessingTasks;
+   private boolean stayinAlive = true;
+   private java.util.Timer checkTimer;
+   public TaskQueueSystem(int _runningThreadCount,int _checkTimeInterval,int _numberOfSectors,int maxClients,TextArea _taLog){
+      checkTimeInterval=_checkTimeInterval;
+      runningThreadCount=_runningThreadCount;
+      taskPool = new PriorityQueue<Task>();
+      numberOfSectors=_numberOfSectors;
+      runningThreads = new LinkedList<Task>();
+      imageProcessingTasks= new LinkedList<LinkedList<Task>>();
+      taLog = _taLog;
+      checkTimer = new java.util.Timer();
+   }
+   public void run(){
+    
+      checkTimer.scheduleAtFixedRate(new TimerTask(){
+         public void run(){
+            check();
+         }
+      },0,checkTimeInterval);
+      while(stayinAlive){
+         Thread.yield();
+      }
+   }
+   public void killQueue(){
+      checkTimer.cancel();
+      checkTimer.purge();
+      stayinAlive=false;
+   }
+   public int getFilenameCount(){
+      ArrayList<String> names =new ArrayList<String>();
+      Iterator<Task> poolIter = taskPool.iterator();
+      while(poolIter.hasNext()){
+         Task temp= poolIter.next();
+         if(!names.contains(temp.getFilename())){
+            names.add(temp.getFilename());
+         }
+      }
+      Iterator<Task> runningIter= runningThreads.iterator();
+      while(runningIter.hasNext()){
+         Task temp= runningIter.next();
+         if(!names.contains(temp.getFilename())){
+            names.add(temp.getFilename());
+         }
+      }
+      Iterator<LinkedList<Task>> iPT = imageProcessingTasks.iterator();
+      while(iPT.hasNext()){
+         Task temp= iPT.next().get(0);
+         if(!names.contains(temp.getFilename())){
+            names.add(temp.getFilename());
+         }
+      }
+      return names.size();
+   }
+
+    private void log(String message) {
+         Platform.runLater(
+             new Runnable() {
+                  public void run() {
+                      taLog.appendText(message);
+                  }
+             } );
+    } // of log   
+   public void check(){
+      // Check if linkedlist taskisdone
+      Iterator<Task> runningIter = runningThreads.iterator();
+      while(runningIter.hasNext()){
+         Task tmp= runningIter.next();
+         if(!tmp.isAlive()){
+            postWork(tmp);
+            runningIter.remove();
+         }
+      }
+      // Check if imageProc linkedList is full
+      Iterator<LinkedList<Task>> imgProcIter = imageProcessingTasks.iterator();
+      while(imgProcIter.hasNext()){
+         LinkedList<Task> tmp = imgProcIter.next();
+         if(tmp.size()==numberOfSectors){
+            SendImage si = new SendImage((((ImageProcessing)tmp.get(0).getWork()).getSector()).getImage(),tmp.get(0).getSocket());
+            Task newTask = new Task(si,"sendingFile",tmp.get(0).getImageType(),1,tmp.get(0).getFilename(),tmp.get(0).getSocket());
+            tmp.add(newTask);
+            imgProcIter.remove();
+         }
+      }
+      // Check if running link list is full
+      while((runningThreads.size()<runningThreadCount)&&(taskPool.size()>0)){
+         Task newTask = taskPool.poll();
+         newTask.start();
+         runningThreads.add(newTask);
+      }
+   }
+   public void add(Task task){
+      task.setTaskId(taskIdCounter);
+      taskIdCounter++;
+      taskPool.add(task);
+   }
+   public void postWork(Task task){
+      Task newTask=null;
+      switch(task.getWorkType()){
+         case "builder":
+            SectorBuilder sc = (SectorBuilder)task.getWork();
+            ImageProcessing iP = new ImageProcessing(sc.getSector(),task.getImageType());
+            newTask= new Task(iP,"imageProcessing",task.getImageType(),5,task.getFilename(),task.getSocket());
+            add(newTask);
+            break;
+         case "imageProcessing":
+            int index = fileNameIndex(task.getFilename());
+            if(index>=0){
+               imageProcessingTasks.get(index).add(task);
+            }
+            else{
+               LinkedList<Task> llt = new LinkedList<Task>();
+               llt.add(task);
+               imageProcessingTasks.add(llt);
+            }
+            break;
+         case "sendingFile":
+
+            log(clientId(task)+"File"+task.getFilename()+" Successfully Sent");
+            break;
+      }
+   }
+   public String clientId(Task task){
+      Socket cSocket = task.getSocket();
+      return "<" + cSocket.getInetAddress().getHostAddress() + ">" + "<" + cSocket.getPort() + ">";
+   }
+   public int fileNameIndex(String filename){
+      for(int i = 0;i<imageProcessingTasks.size();i++){
+         if(imageProcessingTasks.get(i).get(0).getFilename().equals(filename)){
+            return i;
+         }
+      }
+      return -1;
+   }
+}
+class ImageProcessing extends Thread{
+   private Sector sector;
+   private String type;
    
+   public ImageProcessing(Sector _sector,String _type){
+      sector=_sector;
+      type=_type;
+   }
+   public void run(){}
+   public Sector getSector(){
+      return sector;
+   }
+}
+class SendImage extends Thread{
+   private BufferedImage image;
+   private Socket cSocket;
+   public SendImage(BufferedImage _image,Socket _cSocket){
+      image=_image;
+      cSocket=_cSocket;
+   }
+   public void run(){}
+
 }
