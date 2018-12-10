@@ -169,15 +169,15 @@ public class Server extends Application implements EventHandler<ActionEvent> {
       
       // main program for a ClientThread
       public void run() {
-         DataInputStream in = null;
-         DataOutputStream out = null;
+         ObjectInputStream in = null;
+         ObjectOutputStream out = null;
          
          log(clientId + " Client connected!\n");
          
          try {
             // Open streams 
-            in = new DataInputStream(cSocket.getInputStream());
-            out = new DataOutputStream(cSocket.getOutputStream());            
+            in = new ObjectInputStream(cSocket.getInputStream());
+            out = new ObjectOutputStream(cSocket.getOutputStream());            
          }
          catch(IOException ioe) {
             log(clientId + " IO Exception (ClientThread): "+ ioe + "\n");
@@ -192,38 +192,39 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          
       
       // EXAMPLE -->  BUT PLEASE ADJUST IT AS WELL. <--   
-         double size;
+         long size;
          String fileName;
          String extension;
          String radioChoice;
          try {
             
-            size = in.readDouble();
+            size = in.readLong();
             taLog.appendText("Received: " + size + "\n");
             taLog.appendText("Sending: " + size + "\n");
-            out.writeDouble(size);
-            
+            out.writeLong(size);
+            out.flush();
             fileName = in.readUTF();
             taLog.appendText("Received: " + fileName + "\n");
             taLog.appendText("Sending: " + fileName + " \n");
             out.writeUTF(fileName);
-            
+            out.flush(); 
             extension = in.readUTF();
             taLog.appendText("Received: " + extension + "\n");
             taLog.appendText("Sending: " + extension + " \n");
-            out.writeUTF(extension);
-            
             radioChoice = in.readUTF();
             taLog.appendText("Received: " + radioChoice + "\n");
-            taLog.appendText("Sending: " + radioChoice + " \n");
-            out.writeUTF(radioChoice);
-            
+            //read in colored image
+         
+            ByteArrayInputStream bais =  new ByteArrayInputStream((byte[])in.readObject());
+            BufferedImage image = ImageIO.read(bais);
+
             switch (radioChoice)
             {
                case "Greyscale": 
                   System.out.println("Greyscale");
                   radioChoice = "_greyscale";
                   break;
+
                case "Sepia": 
                   System.out.println("Sepia");
                   radioChoice = "_sepia";
@@ -242,45 +243,9 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             if (fileName.indexOf(".") > 0)
                fileName = fileName.substring(0, fileName.lastIndexOf("."));
          
-            out.writeUTF(fileName + radioChoice + "." + extension);
-            taLog.appendText("Sending Converted File: " + fileName + radioChoice + "." + extension);
             
             //Client to Server file building
-            File file = new File("temp");
-            DataOutputStream dos = null;
-            try {
-               FileOutputStream fos = new FileOutputStream(file);
-               dos = new DataOutputStream(fos);
-            }
-            catch(Exception e)
-            {
-               log(clientId+"io error on temp file");
-            }
-            boolean readFlag=true;
-            while (readFlag){
-               try {
-                  int data = in.read();
-                  readFlag = (data != -1);
-                  if (readFlag){
-                     dos.write(data);
-                     System.out.println(data);
-                  }
-               }
-               catch(IOException ioe)
-               {
-                  log(clientId+"io error on file write");
-               }
-            }
-          
-            BufferedImage image = null;
-            try{
-
-                image = ImageIO.read(file);
-            
-            }
-            catch(IOException ioe){
-                log(clientId+": error during fileread.");
-            }
+           
             
             boolean belowThreshold=false;
             while(!belowThreshold){
@@ -303,6 +268,9 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                     log(clientId+":Programmus Interruptus");
                   }
                }
+            }
+            while(true){
+              Thread.yield();
             }
          }
 
@@ -337,106 +305,6 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          } );
    } // of log  
    
-
-   public void doGreyscale() {
-      BufferedImage greyscaleImage = null;
-      File f = null;
-      
-      //
-      int width = greyscaleImage.getWidth();
-      int height = greyscaleImage.getHeight();
-      
-      //grabs argb
-      for (int y = 0; y < height; y++)
-      {
-         for (int x = 0; x < width; x++)
-         {
-            int p = greyscaleImage.getRGB(x,y);
-         
-            int a = (p>>24)&0xff;
-            int r = (p>>16)&0xff;
-            int g = (p>>8)&0xff;
-            int b = p&0xff;
-         
-         //calculate average
-            int avg = (r+g+b)/3;
-         
-         //reassign RGB value
-            p = (a<<24) | (avg<<16) | (avg<<8) | avg;
-         
-            greyscaleImage.setRGB(x, y, p);
-         }
-      }
-   }//end greyscale
-   
-   public void doNegative() {
-      BufferedImage negativeImage = null;
-      File f = null;
-      
-      //
-      int width = negativeImage.getWidth();
-      int height = negativeImage.getHeight();
-     
-      //grabs argb
-      for (int y = 0; y < height; y++)
-      {
-         for (int x = 0; x < width; x++)
-         {
-            int p = negativeImage.getRGB(x,y);
-         
-            int a = (p>>24)&0xff;
-            int r = (p>>16)&0xff;
-            int g = (p>>8)&0xff;
-            int b = p&0xff;
-         
-         //assign new values
-            int new_a = a;
-            int r_new = 255 - r;
-            int g_new = 255 - g; 
-            int b_new = 255 - b;  
-            
-         
-         //reassign RGB value
-            p = (a<<24) | (r_new<<16) | (g_new<<8) | b_new;
-         
-            negativeImage.setRGB(x, y, p);
-         }
-      }
-   }//end sepia
-   
-   public void doSepia() {
-      BufferedImage sepiaImage = null;
-      File f = null;
-      
-      //
-      int width = sepiaImage.getWidth();
-      int height = sepiaImage.getHeight();
-      
-      //grabs argb
-      for (int y = 0; y < height; y++)
-      {
-         for (int x = 0; x < width; x++)
-         {
-            int p = sepiaImage.getRGB(x,y);
-         
-            int a = (p>>24)&0xff;
-            int r = (p>>16)&0xff;
-            int g = (p>>8)&0xff;
-            int b = p&0xff;
-         
-         //calculate average
-            int a_new = a; 
-            int r_new = (int)(0.393*r + 0.769*g + 0.189*b);
-            int g_new = (int)(0.349*r + 0.686*g + 0.168*b);
-            int b_new = (int)(0.272*r + 0.534*g + 0.131*b);
-                  
-         //reassign RGB value
-            p = (a_new<<24) | (r_new<<16) | (g_new<<8) | b_new;
-         
-            sepiaImage.setRGB(x, y, p);
-         }
-      }
-   }//end negative
 }
 class Sector{
    private BufferedImage buffImg;
@@ -662,7 +530,7 @@ class TaskQueueSystem extends Thread{
       while(imgProcIter.hasNext()){
          LinkedList<Task> tmp = imgProcIter.next();
          if(tmp.size()==numberOfSectors){
-            SendImage si = new SendImage((((ImageProcessing)tmp.get(0).getWork()).getSector()).getImage(),tmp.get(0).getSocket());
+            SendImage si = new SendImage((((ImageProcessing)tmp.get(0).getWork()).getSector()).getImage(),tmp.get(0).getSocket(),taLog,tmp.get(0).getImageType());
             Task newTask = new Task(si,"sendingFile",tmp.get(0).getImageType(),1,tmp.get(0).getFilename(),tmp.get(0).getSocket());
             tmp.add(newTask);
             imgProcIter.remove();
@@ -722,23 +590,134 @@ class TaskQueueSystem extends Thread{
 class ImageProcessing extends Thread{
    private Sector sector;
    private String type;
-   
+   private int width,height; 
    public ImageProcessing(Sector _sector,String _type){
       sector=_sector;
       type=_type;
+
+      int width = sector.getWidth();
+      int height = sector.getHeight();
    }
-   public void run(){}
+   public void run(){
+      for (int y = 0; y < height; y++){
+         for (int x = 0; x < width; x++)
+         {
+             
+            int p = sector.getRGB(x,y);
+            int a = (p>>24)&0xff;
+            int r = (p>>16)&0xff;
+            int g = (p>>8)&0xff;
+            int b = p&0xff;
+            switch(type){
+               case "_greyscale":
+                  p=doGreyscale(a,r,g,b);
+                  break;
+               case "_sepia":
+                  p=doSepia(a,r,g,b);
+                  break;
+               case "_negative":
+                  p=doNegative(a,r,g,b);
+                  break;
+            }
+            sector.setRGB(x,y,p);
+         
+         }
+      }
+   }
    public Sector getSector(){
       return sector;
    }
-}
+
+   public int doGreyscale(int a,int r, int g, int b) {
+   
+   //grabs argb
+         //calculate average
+       int p;
+       int avg = (r+g+b)/3;
+         
+         //reassign RGB value
+       p = (a<<24) | (avg<<16) | (avg<<8) | avg;
+       return p;
+         
+       
+   
+       //return greyscaleImage;
+   }//end greyscale
+
+   public int doNegative(int a,int r,int g,int b) {
+        
+         //assign new values
+             int p;
+             int new_a = a;
+             int r_new = 255 - r;
+             int g_new = 255 - g; 
+             int b_new = 255 - b;  
+         
+         
+         //reassign RGB value
+             p = (a<<24) | (r_new<<16) | (g_new<<8) | b_new;
+             return p; 
+         
+       
+   }//end negative
+
+   public int doSepia(int a,int r,int g,int b) {
+   
+   //
+             int p; 
+         //calculate average
+             int a_new = a; 
+             int r_new = (int)(0.393*r + 0.769*g + 0.189*b);
+             int g_new = (int)(0.349*r + 0.686*g + 0.168*b);
+             int b_new = (int)(0.272*r + 0.534*g + 0.131*b);
+               
+         //reassign RGB value
+             p = (a_new<<24) | (r_new<<16) | (g_new<<8) | b_new;
+             return p;
+         
+       
+   }//end sepia
+   
+   
+}   
 class SendImage extends Thread{
    private BufferedImage image;
    private Socket cSocket;
-   public SendImage(BufferedImage _image,Socket _cSocket){
+   private String clientId;
+   private TextArea taLog;
+   private String extension;
+   public SendImage(BufferedImage _image,Socket _cSocket,TextArea _taLog,String _extension){
       image=_image;
       cSocket=_cSocket;
+      taLog=_taLog;
+      clientId = "<" + cSocket.getInetAddress().getHostAddress() + ">" + "<" + cSocket.getPort() + ">";
    }
-   public void run(){}
+   public void run(){
+      ObjectOutputStream out=null;
+      try{
+        
+         out = new ObjectOutputStream(cSocket.getOutputStream());   
+                    
+         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+         
+         ImageIO.write(image,extension,baos);
+         out.writeObject(baos.toByteArray());
+         out.flush();
+         log(clientId+"sending file!");
+      }
+      catch(IOException ioe) {
+         log(clientId + " IO Exception (ClientThread): "+ ioe + "\n");
+         return;
+      }
+   }
+   
+    private void log(String message) {
+         Platform.runLater(
+             new Runnable() {
+                  public void run() {
+                      taLog.appendText(message);
+                  }
+             } );
+    } // of log   
 
 }
