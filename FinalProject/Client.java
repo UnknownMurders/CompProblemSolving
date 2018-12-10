@@ -3,7 +3,7 @@
  * Allows client to send a color image file to the server 
  * and requests that the server return either a grayscale, negative, or sepia version of the image. 
  * @author Trent Jacobson, Edward Riley, William Gardner, Melody Kabbai	
- * @version 11-9-2018
+ * @version 12-10-2018
  * @Purpose FINAL PROJECT
  */
 
@@ -57,7 +57,6 @@ public class Client extends Application implements EventHandler<ActionEvent>{
    private RadioButton rbNegative = new RadioButton("Negative");
    private RadioButton rbSepia = new RadioButton("Sepia");
    
-
    // IO attributes
    private ObjectInputStream in = null;
    private ObjectOutputStream out = null;
@@ -127,15 +126,7 @@ public class Client extends Application implements EventHandler<ActionEvent>{
       scene = new Scene(root, 475, 300);
       stage.setScene(scene);
       stage.show();      
-      
-     
-      
-      
-      
-      
-      
-      
-      
+           
    }
 
    /** 
@@ -242,7 +233,7 @@ public class Client extends Application implements EventHandler<ActionEvent>{
          taLog.appendText(fileName + " has been successfully sent!\n");
          
          int dot = fileName.lastIndexOf(".");
-         extension = fileName.substring(dot+1);
+         extension = fileName.substring(dot + 1);
          out.writeUTF(extension);
          out.flush();
          
@@ -315,7 +306,7 @@ public class Client extends Application implements EventHandler<ActionEvent>{
       
       catch (Exception e){
         
-        System.out.println(e.getStackTrace().toString());
+        System.out.println(e.getStackTrace().toString() );
         taLog.appendText("Error during transmission: " + e + "\n");
       }
    }
