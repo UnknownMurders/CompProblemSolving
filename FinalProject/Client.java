@@ -274,6 +274,8 @@ public class Client extends Application implements EventHandler<ActionEvent>{
          taLog.appendText(radioChoice + " has been successfully sent!\n");
          
          
+        /* remove this comment to continue experimentation
+        
          taLog.appendText("Sending File");
          File file = new File(fullName);
          BufferedImage buff = ImageIO.read(file);
@@ -297,6 +299,9 @@ public class Client extends Application implements EventHandler<ActionEvent>{
          taLog.appendText("Read object");
          ImageIO.write(rcvdImg,extension,temp);
          System.out.println("getting file back...");
+         
+         remove this comment to continue experimentation   */
+          
          //BufferedImage image =  ImageIO.iin.readObject(); 
          //System.out.println("Gots the file");
          //ImageIO.write(image, extension, tmp);
