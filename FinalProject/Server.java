@@ -18,7 +18,7 @@ import javax.imageio.ImageIO;
 
  
 public class Server extends Application implements EventHandler<ActionEvent> {
-   // Window attributes
+    // Window attributes
    private Stage stage;
    private Scene scene;
    private VBox root;
