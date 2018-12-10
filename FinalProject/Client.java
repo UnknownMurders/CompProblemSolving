@@ -20,13 +20,18 @@ import javafx.geometry.*;
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.nio.file.Path;
 
 import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 
-public class Client extends Application implements EventHandler<ActionEvent> {
+public class Client extends Application implements EventHandler<ActionEvent>{
    // Window Attributes
    private Stage stage;
    private Scene scene;
@@ -55,8 +60,8 @@ public class Client extends Application implements EventHandler<ActionEvent> {
    
 
    // IO attributes
-   private DataInputStream in = null;
-   private DataOutputStream out = null;
+   private ObjectInputStream in = null;
+   private ObjectOutputStream out = null;
 
    // OTHER attributes
    public static final int SERVER_PORT = 50000; 
@@ -160,8 +165,10 @@ public class Client extends Application implements EventHandler<ActionEvent> {
          // Connect to server and set up two streams, a Scanner for input from the
          // server and a PrintWriter for output to the server
          socket = new Socket(tfServerIP.getText(), SERVER_PORT);
-         in = new DataInputStream(socket.getInputStream());
-         out = new DataOutputStream(socket.getOutputStream());
+         out = new ObjectOutputStream(socket.getOutputStream());
+         in = new ObjectInputStream(socket.getInputStream());
+        
+         out.flush();
       }
       catch(IOException ioe) {
          taLog.appendText("IO Exception: " + ioe + "\n");
@@ -180,9 +187,11 @@ public class Client extends Application implements EventHandler<ActionEvent> {
    private void doDisconnect() {
       try {
          // Close the socket and streams
+         out.flush();
          socket.close();
-         in.close();
          out.close();
+         in.close();
+         
          taLog.appendText("Disconnected!\n");
       }
       catch(IOException ioe) {
@@ -199,6 +208,7 @@ public class Client extends Application implements EventHandler<ActionEvent> {
     * doSend - Send button'
     */
    private void doSendImage() {
+   
       int i = 0;
       
       FileChooser fileChooser = new FileChooser();
@@ -207,35 +217,35 @@ public class Client extends Application implements EventHandler<ActionEvent> {
                         new FileChooser.ExtensionFilter("Image Files", "*.jpg", "*.jpeg", "*.png");
       File selectedFile = fileChooser.showOpenDialog(stage);
    
-      double bytes = selectedFile.length();
+      long fileLength = selectedFile.length();
       String fileName = selectedFile.getName();
       
       FileInputStream fis = null;
-      double receivedDouble = 0;
+      long receivedDouble = 0;
       String receivedString = "";
       String extension = "";
       String radioChoice = "";
       
+     // ObjectInputStream in = null;
+     // ObjectOutputStream out = null;
+      
       try 
       {
-         out.writeDouble(bytes);
-         receivedDouble = in.readDouble();
-         taLog.appendText(receivedDouble + " has been successfully sent!\n");
+         out.writeLong(fileLength);
+         out.flush();
+         receivedDouble = in.readLong();
+         taLog.appendText(fileLength + " has been successfully sent!\n");
          
+         String fullName = selectedFile.getAbsolutePath();
          out.writeUTF(fileName);
+         out.flush();
          receivedString = in.readUTF();
-         taLog.appendText(receivedString + " has been successfully sent!\n");
-      
-         int index = fileName.lastIndexOf('.');
-         if (index > 0) {
-            
-            extension = fileName.substring(index + 1);
-         }
+         taLog.appendText(fileName + " has been successfully sent!\n");
          
+         int dot = fileName.lastIndexOf(".");
+         extension = fileName.substring(dot+1);
          out.writeUTF(extension);
-         receivedString = in.readUTF();
-         taLog.appendText(receivedString + " has been successfully sent!\n");
-         
+         out.flush();
          
          if (rbGreyscale.isSelected())
          {
@@ -260,100 +270,49 @@ public class Client extends Application implements EventHandler<ActionEvent> {
          }
       
          out.writeUTF(radioChoice);
-         receivedString = in.readUTF();
-         taLog.appendText(receivedString + " has been successfully sent!\n");
+         out.flush();
+      
+         taLog.appendText(radioChoice + " has been successfully sent!\n");
          
-         receivedString = in.readUTF();
-         taLog.appendText(receivedString + " has been successfully received!\n");         
+         
+         taLog.appendText("Sending File");
+         File file = new File(fullName);
+         BufferedImage buff = ImageIO.read(file);
+         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+         ImageIO.write(buff,extension,baos);
+         //send colored file
+         baos.flush();
+         out.writeObject(baos.toByteArray());
+         taLog.appendText("Successfully Sent File");
+      
+         //File savedFile = fileChooser.showSaveDialog(stage);         
+         //read in and write to file greyscale image
+         //BufferedImage image =  (BufferedImage)in.readObject();
+         //ImageIO.write(image, extension, savedFile);
+         
+         ByteArrayInputStream bais= new ByteArrayInputStream((byte[])in.readObject());
+         
+         BufferedImage rcvdImg = ImageIO.read(bais);
+         File temp = new File("temp");
+         taLog.appendText("recieved object");
+         taLog.appendText("Read object");
+         ImageIO.write(rcvdImg,extension,temp);
+         System.out.println("getting file back...");
+         //BufferedImage image =  ImageIO.iin.readObject(); 
+         //System.out.println("Gots the file");
+         //ImageIO.write(image, extension, tmp);
+         //byte[] byteFile=tmp.toByteArray();
+         //try(FileOutputStream fos = new FileOutputStream(savedFile)){
+           // fos.write(byteFile);
+         //}
+      }
+      
+      //lets see if it works
+      
+      catch (Exception e){
         
-         
-         fis = new FileInputStream(selectedFile);
-         while ((i = fis.read()) > -1)
-         {
-           System.out.println(i); //to show how many BYTES are being transmitted to the server
-           out.write(i);
-           
-           
-         }
-      
-         out.write(-1);
-         
-      
-         
-         fis.close();
-         out.close();
-         socket.close();
+        System.out.println(e.getStackTrace().toString());
+        taLog.appendText("Error during transmission: " + e + "\n");
       }
-      catch (Exception e) { }
-      /*
-      tryx
-      {
-         DataOutputStream dos = new DataOutputStream(fis);
-      }
-      catch (Exception e) { }
-      */
-      
-      /* int i = 0;
-      FileInputStream fis = null;
-      try
-      {
-         fis = new FileInputStream (selectedFile);
-      }
-      catch (Exception e) { }
-      try {
-         while ((i = fis.read()) > -1)
-            out.write(i);
-      }
-      catch (Exception e) { }
-     
-      try {
-         fis.close();
-         out.close();
-         socket.close();
-      }
-      catch (Exception e) { } 
-   
-      if (rbGreyscale.isSelected())
-            {
-               System.out.println("GREYSCALE WAS ON");
-   
-            }
-            else if (rbSepia.isSelected())
-            {
-               System.out.println("SEPIA WAS ON");
-            }
-            else if (rbNegative.isSelected())
-            {
-               System.out.println("NEGATIVE WAS ON");
-            }
-            else
-            {
-               System.out.println("NO ACTIVE RADIO BUTTON");
-            }
-      
-       end 
-      */
-      
-      
-      
-      
-      
-      //TEST CODE BETWEEN SERVER AND CLIENT TO ENSURE THAT CONNECTION IS "NOMINAL" 
-    /*//EXAMPLE --> BUT PLEASE ADJUST IT AS WELL. <--   
-          //String hello = "Hello";
-      try {
-         out.writeUTF(hello);
-         taLog.appendText("Sent: " + hello + "\n");
-         String reply = in.readUTF();
-         taLog.appendText("Reply: " + reply + "\n");
-      }
-      catch(Exception e) {
-         taLog.appendText("Error during transmission: " + e + "\n");
-      }
-      */
-   
-            
-    //  doDisconnect();
    }
-
 }
