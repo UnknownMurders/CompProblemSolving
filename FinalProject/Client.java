@@ -1,8 +1,7 @@
 /**
  * TCP Client
  * Allows client to send a color image file to the server 
- * and requests that the server return either a grayscale,
- * negative, or sepia version of the image. 
+ * and requests that the server return either a grayscale, negative, or sepia version of the image. 
  * @author Trent Jacobson, Edward Riley, William Gardner, Melody Kabbai	
  * @version 11-9-2018
  * @Purpose FINAL PROJECT

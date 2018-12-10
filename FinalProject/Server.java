@@ -109,7 +109,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    class ServerThread extends Thread {
      private TaskQueueSystem tqs= null;
      public ServerThread(){
-       tqs=new TaskQueueSystem(RUNNING_THREAD_COUNT,CHECK_TIME_INTERVAL,NUMBER_OF_SECTORS,MAX_CLIENTS,taLog);
+       tqs=new TaskQueueSystem(RUNNING_THREAD_COUNT, CHECK_TIME_INTERVAL, NUMBER_OF_SECTORS, MAX_CLIENTS, taLog);
      }
      public void run() {
          // Server stuff ... wait for a connection and process it
@@ -137,7 +137,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             }   
              
             // Create a thread for the client, passing cSocket to the
-            // threadâ€™s constructor and start the thread...
+            // thread’s constructor and start the thread...
             ClientThread ct = new ClientThread(cSocket,tqs);
             ct.start();      
             
