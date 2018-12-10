@@ -18,7 +18,7 @@ import javax.imageio.ImageIO;
 
  
 public class Server extends Application implements EventHandler<ActionEvent> {
-   // Window attributes
+    // Window attributes
    private Stage stage;
    private Scene scene;
    private VBox root;
@@ -120,7 +120,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             log("ServerThread: IO Exception (1): "+ ioe + "\n");
             return;
          }
-          
+         tqs.start(); 
          while(true) {
             // Socket for the client
             Socket cSocket = null;
@@ -137,7 +137,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             }   
              
             // Create a thread for the client, passing cSocket to the
-            // thread’s constructor and start the thread...
+            // threads constructor and start the thread...
             ClientThread ct = new ClientThread(cSocket,tqs);
             ct.start();      
             
@@ -253,7 +253,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                   for(int i = 0;i<Y_UNITS;i++){
                      for(int k =0;k<X_UNITS;k++){
                         SectorBuilder sb = new SectorBuilder(image,k,i,X_UNITS,Y_UNITS);
-                        Task task = new Task(sb,"builder",radioChoice,3,fileName,cSocket);
+                        Task task = new Task(sb,"builder",radioChoice,3,fileName,cSocket,out);
                         tqs.add(task);
                      }
                   }
@@ -348,6 +348,12 @@ class Sector
    public void setHeight(int _height){
       height=_height;
    }
+   public int getX(){
+      return x;
+   }
+   public int getY(){
+      return y;
+   }
    public BufferedImage getImage(){
       return buffImg;
    }
@@ -394,7 +400,8 @@ class Task extends Thread implements Comparable<Task>{
    private String imageType;
    private int priority;
    private Socket cSocket;
-   public Task(Thread _work,String _workType,String _imageType,int _priority,String _filename,Socket _cSocket)
+   private ObjectOutputStream oos;
+   public Task(Thread _work,String _workType,String _imageType,int _priority,String _filename,Socket _cSocket,ObjectOutputStream _oos)
    {
       work = _work;
       workType = _workType;
@@ -403,6 +410,10 @@ class Task extends Thread implements Comparable<Task>{
       priority = _priority;
       filename = _filename;
       cSocket= _cSocket;
+      oos=_oos;
+   }
+   public ObjectOutputStream getOos(){
+      return oos;
    }
    public void setTaskId(int id){
       taskId=id;
@@ -473,12 +484,11 @@ class TaskQueueSystem extends Thread{
       taLog = _taLog;
       checkTimer = new java.util.Timer();
    }
-   public void run(){
-    
-      checkTimer.scheduleAtFixedRate(new TimerTask()
-      {
+   public void run(){ 
+      checkTimer.scheduleAtFixedRate(new TimerTask(){
          public void run(){
             check();
+            //System.out.println("Checking"); 
          }
       },0,checkTimeInterval);
       
@@ -541,6 +551,7 @@ class TaskQueueSystem extends Thread{
          if( !tmp.isAlive() )
          {
             postWork(tmp);
+            System.out.println(tmp.getFilename()+tmp.getWorkType()+" has finished");
             runningIter.remove();
          }
       }
@@ -550,9 +561,10 @@ class TaskQueueSystem extends Thread{
       {
          LinkedList<Task> tmp = imgProcIter.next();
          if(tmp.size()==numberOfSectors){
-            SendImage si = new SendImage((((ImageProcessing)tmp.get(0).getWork()).getSector()).getImage(),tmp.get(0).getSocket(),taLog,tmp.get(0).getImageType());
-            Task newTask = new Task(si,"sendingFile",tmp.get(0).getImageType(),1,tmp.get(0).getFilename(),tmp.get(0).getSocket());
-            tmp.add(newTask);
+            SendImage si = new SendImage((((ImageProcessing)tmp.get(0).getWork()).getSector()).getImage(),tmp.get(0).getSocket(),taLog,tmp.get(0).getImageType(),tmp.get(0).getOos());
+            Task newTask = new Task(si,"sendingFile",tmp.get(0).getImageType(),1,tmp.get(0).getFilename(),tmp.get(0).getSocket(),tmp.get(0).getOos());
+            System.out.print("Sending Thread Queued");
+            add(newTask);
             imgProcIter.remove();
          }
       }
@@ -561,6 +573,7 @@ class TaskQueueSystem extends Thread{
       {
          Task newTask = taskPool.poll();
          newTask.start();
+	 System.out.println("Starting task " + newTask.getFilename()+newTask.getWorkType());
          runningThreads.add(newTask);
       }
    }
@@ -578,7 +591,8 @@ class TaskQueueSystem extends Thread{
          case "builder":
             SectorBuilder sc = (SectorBuilder)task.getWork();
             ImageProcessing iP = new ImageProcessing(sc.getSector(),task.getImageType());
-            newTask= new Task(iP, "imageProcessing", task.getImageType(), 5, task.getFilename(), task.getSocket() );
+
+            newTask= new Task(iP,"imageProcessing",task.getImageType(),5,task.getFilename(),task.getSocket(),task.getOos());
             add(newTask);
             break;
          case "imageProcessing":
@@ -627,6 +641,7 @@ class ImageProcessing extends Thread{
       int height = sector.getHeight();
    }
    public void run(){
+      BufferedImage img = sector.getImage();
       for (int y = 0; y < height; y++){
          for (int x = 0; x < width; x++)
          {          
@@ -647,10 +662,18 @@ class ImageProcessing extends Thread{
                   p=doNegative(a,r,g,b);
                   break;
             }
-            sector.setRGB(x,y,p);
-         
+	          //syncronized(p){
+              img.setRGB(x+sector.getX()+x,sector.getY()+y,p);
+            
+            //
          }
       }
+      File tmp = new File("temp"+sector.getX()+sector.getY());
+      try{
+         ImageIO.write(img,"jpg",tmp);
+      }
+      catch(IOException ioe){}
+      
    }
    public Sector getSector(){
       return sector;
@@ -714,26 +737,29 @@ class SendImage extends Thread{
    private String clientId;
    private TextArea taLog;
    private String extension;
-   public SendImage(BufferedImage _image,Socket _cSocket,TextArea _taLog,String _extension){
+   private ObjectOutputStream oos;
+   public SendImage(BufferedImage _image,Socket _cSocket,TextArea _taLog,String _extension,ObjectOutputStream _Oos){
       image=_image;
       cSocket=_cSocket;
       taLog=_taLog;
+      oos=_Oos;
       clientId = "<" + cSocket.getInetAddress().getHostAddress() + ">" + "<" + cSocket.getPort() + ">";
    }
    public void run(){
-      ObjectOutputStream out=null;
+      System.out.println("Gets Here!");
       try{
-        
-         out = new ObjectOutputStream(cSocket.getOutputStream());   
+         System.out.println("Gets This far"); 
                     
          ByteArrayOutputStream baos = new ByteArrayOutputStream();
          
-         ImageIO.write(image,extension,baos);
-         out.writeObject(baos.toByteArray());
-         out.flush();
-         log(clientId+"sending file!");
+         ImageIO.write(image,"jpg",baos);
+         oos.writeObject(baos.toByteArray());
+         oos.flush();
+         System.out.println("Sending File Back!");
+         log(clientId+"sending file!\n");
       }
       catch(IOException ioe) {
+         System.out.print(clientId+"IOEXCEPTION" +ioe+"\n");
          log(clientId + " IO Exception (ClientThread): "+ ioe + "\n");
          return;
       }
