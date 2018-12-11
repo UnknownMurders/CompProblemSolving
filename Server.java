@@ -433,6 +433,7 @@ class Task extends Thread implements Comparable<Task>{
    public Socket getSocket(){
       return cSocket;
    }
+   
    public void run(){
       switch(workType){
             case "builder":
@@ -450,7 +451,7 @@ class Task extends Thread implements Comparable<Task>{
 
       }catch(InterruptedException ie)
       {
-         System.out.println("Task "+taskId+" Interrupted");
+         System.out.println("Task " + taskId + " Interrupted");
       }
 
    }
