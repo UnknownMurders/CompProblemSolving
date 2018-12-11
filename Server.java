@@ -18,7 +18,7 @@ import javax.imageio.ImageIO;
 
  
 public class Server extends Application implements EventHandler<ActionEvent> {
-    // Window attributes
+   // Window attributes
    private Stage stage;
    private Scene scene;
    private VBox root;
@@ -109,7 +109,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    class ServerThread extends Thread {
      private TaskQueueSystem tqs= null;
      public ServerThread(){
-       tqs=new TaskQueueSystem(RUNNING_THREAD_COUNT, CHECK_TIME_INTERVAL, NUMBER_OF_SECTORS, MAX_CLIENTS, taLog);
+       tqs=new TaskQueueSystem(RUNNING_THREAD_COUNT,CHECK_TIME_INTERVAL,NUMBER_OF_SECTORS,MAX_CLIENTS,taLog);
      }
      public void run() {
          // Server stuff ... wait for a connection and process it
@@ -137,7 +137,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             }   
              
             // Create a thread for the client, passing cSocket to the
-            // threads constructor and start the thread...
+            // thread’s constructor and start the thread...
             ClientThread ct = new ClientThread(cSocket,tqs);
             ct.start();      
             
@@ -199,17 +199,17 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          try {
             
             size = in.readLong();
-            taLog.appendText("Received: " + size + " Bytes \t");
-            taLog.appendText("Sending: " + size + "Bytes \n");
+            taLog.appendText("Received: " + size + "\n");
+            taLog.appendText("Sending: " + size + "\n");
             out.writeLong(size);
             out.flush();
             fileName = in.readUTF();
-            taLog.appendText("Received: " + fileName + "\t");
+            taLog.appendText("Received: " + fileName + "\n");
             taLog.appendText("Sending: " + fileName + " \n");
             out.writeUTF(fileName);
             out.flush(); 
             extension = in.readUTF();
-            taLog.appendText("Received: " + extension + "\t\t");
+            taLog.appendText("Received: " + extension + "\n");
             taLog.appendText("Sending: " + extension + " \n");
             radioChoice = in.readUTF();
             taLog.appendText("Received: " + radioChoice + "\n");
@@ -217,7 +217,9 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          
             ByteArrayInputStream bais =  new ByteArrayInputStream((byte[])in.readObject());
             BufferedImage image = ImageIO.read(bais);
-
+            File file = new File("temp"+fileName);
+            ImageIO.write(image,extension,file);
+            image =ImageIO.read(file);
             switch (radioChoice)
             {
                case "Greyscale": 
@@ -306,35 +308,30 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    } // of log  
    
 }
-class Sector
-{
+class Sector{
    private BufferedImage buffImg;
    private int x,y,width,height;
-
-   public Sector(BufferedImage _buffImg,int _x,int _y,int _width,int _height)
-   {
+   public Sector(BufferedImage _buffImg,int _x,int _y,int _width,int _height){
       buffImg=_buffImg;
       x=_x;
       y=_y;
       width=_width;
       height=_height;
    }
-   
-   public int getRGB(int _x,int _y)
-   {
-      if (  (_x >= width) || (_y>=height) || (_x<0) || (_y<0) )
+   public int getRGB(int _x,int _y){
+      if((_x >= width)||(_y>=height)||(_x<0)||(_y<0))
       {
          throw new IndexOutOfBoundsException();
       }
-      return buffImg.getRGB( (x+_x),(y+_y) ); 
+      return buffImg.getRGB((x+_x),(y+_y)); 
    }
-   public void setRGB(int _x, int _y, int value)
-   {
-      if( (_x >= width) || (_y>=height) || (_x<0) || (_y<0) )
+   public void setRGB(int _x,int _y, int value){
+      
+      if((_x >= width)||(_y>=height)||(_x<0)||(_y<0))
       {
          throw new IndexOutOfBoundsException();
       }
-      buffImg.setRGB( (x+_x), (y+_y), value);
+      buffImg.setRGB((x+_x),(y+_y),value);
    }
    public int getWidth(){
       return width;
@@ -362,14 +359,14 @@ class SectorBuilder extends Thread{
    private BufferedImage buffImg;
    private int sectionX, sectionY,xUnits,yUnits;
    private Sector sect=null;
-   
-   public SectorBuilder(BufferedImage _buffImg, int _sectionX, int _sectionY, int _xUnits, int _yUnits)
-   {
+   public SectorBuilder(BufferedImage _buffImg,int _sectionX,int _sectionY, int _xUnits,int _yUnits){
       buffImg=_buffImg;
       sectionX=_sectionX;
       sectionY=_sectionY;
       xUnits=_xUnits;
-      yUnits=_yUnits;   
+      yUnits=_yUnits;
+   
+      
    }
    public void run(){
       int width = buffImg.getWidth()/xUnits;
@@ -473,9 +470,7 @@ class TaskQueueSystem extends Thread{
    private LinkedList<LinkedList<Task>> imageProcessingTasks;
    private boolean stayinAlive = true;
    private java.util.Timer checkTimer;
-   
-   public TaskQueueSystem(int _runningThreadCount, int _checkTimeInterval, int _numberOfSectors, int maxClients, TextArea _taLog)
-   {  
+   public TaskQueueSystem(int _runningThreadCount,int _checkTimeInterval,int _numberOfSectors,int maxClients,TextArea _taLog){
       checkTimeInterval=_checkTimeInterval;
       runningThreadCount=_runningThreadCount;
       taskPool = new PriorityQueue<Task>();
@@ -492,44 +487,35 @@ class TaskQueueSystem extends Thread{
             //System.out.println("Checking"); 
          }
       },0,checkTimeInterval);
-      
       while(stayinAlive){
          Thread.yield();
       }
    }
-   
    public void killQueue(){
       checkTimer.cancel();
       checkTimer.purge();
-      stayinAlive = false;
+      stayinAlive=false;
    }
-   
    public int getFilenameCount(){
-      ArrayList<String> names = new ArrayList<String>();
+      ArrayList<String> names =new ArrayList<String>();
       Iterator<Task> poolIter = taskPool.iterator();
-      while( poolIter.hasNext() )
-      {
+      while(poolIter.hasNext()){
          Task temp= poolIter.next();
-         if(!names.contains( temp.getFilename() ))
-         {
-            names.add(temp.getFilename() );
+         if(!names.contains(temp.getFilename())){
+            names.add(temp.getFilename());
          }
       }
-      
-      Iterator<Task> runningIter = runningThreads.iterator();
-      while(runningIter.hasNext())
-      {
-         Task temp = runningIter.next();
-         if(!names.contains(temp.getFilename() ))
-         {
+      Iterator<Task> runningIter= runningThreads.iterator();
+      while(runningIter.hasNext()){
+         Task temp= runningIter.next();
+         if(!names.contains(temp.getFilename())){
             names.add(temp.getFilename());
          }
       }
       Iterator<LinkedList<Task>> iPT = imageProcessingTasks.iterator();
       while(iPT.hasNext()){
          Task temp= iPT.next().get(0);
-         if(!names.contains(temp.getFilename()))
-         {
+         if(!names.contains(temp.getFilename())){
             names.add(temp.getFilename());
          }
       }
@@ -549,8 +535,7 @@ class TaskQueueSystem extends Thread{
       Iterator<Task> runningIter = runningThreads.iterator();
       while(runningIter.hasNext()){
          Task tmp= runningIter.next();
-         if( !tmp.isAlive() )
-         {
+         if(!tmp.isAlive()){
             postWork(tmp);
             System.out.println(tmp.getFilename()+tmp.getWorkType()+" has finished");
             runningIter.remove();
@@ -558,8 +543,7 @@ class TaskQueueSystem extends Thread{
       }
       // Check if imageProc linkedList is full
       Iterator<LinkedList<Task>> imgProcIter = imageProcessingTasks.iterator();
-      while( imgProcIter.hasNext() )
-      {
+      while(imgProcIter.hasNext()){
          LinkedList<Task> tmp = imgProcIter.next();
          if(tmp.size()==numberOfSectors){
             SendImage si = new SendImage((((ImageProcessing)tmp.get(0).getWork()).getSector()).getImage(),tmp.get(0).getSocket(),taLog,tmp.get(0).getImageType(),tmp.get(0).getOos());
@@ -570,29 +554,24 @@ class TaskQueueSystem extends Thread{
          }
       }
       // Check if running link list is full
-      while( (runningThreads.size()<runningThreadCount) && (taskPool.size() > 0))
-      {
+      while((runningThreads.size()<runningThreadCount)&&(taskPool.size()>0)){
          Task newTask = taskPool.poll();
          newTask.start();
 	 System.out.println("Starting task " + newTask.getFilename()+newTask.getWorkType());
          runningThreads.add(newTask);
       }
    }
-   public void add(Task task)
-   {
+   public void add(Task task){
       task.setTaskId(taskIdCounter);
       taskIdCounter++;
       taskPool.add(task);
    }
-   public void postWork(Task task)
-   {
-      Task newTask = null;
-      switch(task.getWorkType())
-      {
+   public void postWork(Task task){
+      Task newTask=null;
+      switch(task.getWorkType()){
          case "builder":
             SectorBuilder sc = (SectorBuilder)task.getWork();
             ImageProcessing iP = new ImageProcessing(sc.getSector(),task.getImageType());
-
             newTask= new Task(iP,"imageProcessing",task.getImageType(),5,task.getFilename(),task.getSocket(),task.getOos());
             add(newTask);
             break;
@@ -609,20 +588,17 @@ class TaskQueueSystem extends Thread{
             break;
          case "sendingFile":
 
-            log(clientId(task) + "File" + task.getFilename() + " Successfully Sent");
+            log(clientId(task)+"File"+task.getFilename()+" Successfully Sent");
             break;
       }
    }
-   public String clientId(Task task)
-   {
+   public String clientId(Task task){
       Socket cSocket = task.getSocket();
       return "<" + cSocket.getInetAddress().getHostAddress() + ">" + "<" + cSocket.getPort() + ">";
    }
    public int fileNameIndex(String filename){
-      for(int i = 0; i < imageProcessingTasks.size(); i++)
-      {
-         if(imageProcessingTasks.get(i).get(0).getFilename().equals(filename) )
-         {
+      for(int i = 0;i<imageProcessingTasks.size();i++){
+         if(imageProcessingTasks.get(i).get(0).getFilename().equals(filename)){
             return i;
          }
       }
@@ -633,28 +609,45 @@ class ImageProcessing extends Thread{
    private Sector sector;
    private String type;
    private int width,height; 
-   public ImageProcessing(Sector _sector,String _type)
-   {
+   public ImageProcessing(Sector _sector,String _type){
       sector=_sector;
       type=_type;
 
       int width = sector.getWidth();
       int height = sector.getHeight();
+      
+      System.out.println("Is of type:"+type+"W:"+width+"|H:"+height);
    }
    public void run(){
       BufferedImage img = sector.getImage();
-      for (int y = 0; y < height; y++){
-         for (int x = 0; x < width; x++)
-         {          
-            int p = sector.getRGB(x,y);
+      //System.out.println("its actually running this");
+      int sWidth=0,sHeight=0;
+      synchronized(sector){
+        sWidth+=sector.getWidth();
+        sHeight+=sector.getHeight();
+      }
+      int x,y;
+      System.out.println(sHeight+""+sWidth);
+      for (y = 0; y < sHeight; y++){
+         //System.out.println("It gets Herey");
+         for (x = 0; x < sWidth; x++)
+         {
+            //System.out.println("How about Herey!");
+            int p=0;
+            //synchronized(sector){
+               p = sector.getRGB(x,y);
+            //}
+    
+            //System.out.println("P value before:"+p); 
             int a = (p>>24)&0xff;
             int r = (p>>16)&0xff;
             int g = (p>>8)&0xff;
             int b = p&0xff;
-            switch(type)
-            {
+            switch(type){
                case "_greyscale":
-                  p=doGreyscale(a,r,g,b);
+                  
+                  p=doGreyscale(a,r,g,b); 
+                  //System.out.println("P value after:"+p); 
                   break;
                case "_sepia":
                   p=doSepia(a,r,g,b);
@@ -663,17 +656,16 @@ class ImageProcessing extends Thread{
                   p=doNegative(a,r,g,b);
                   break;
             }
-	          //syncronized(p){
-              img.setRGB(x+sector.getX()+x,sector.getY()+y,p);
-            
-            //
+	          //synchronized(sector){
+               sector.setRGB(x,y,p); 
+            //}
          }
       }
-      File tmp = new File("temp"+sector.getX()+sector.getY());
-      try{
-         ImageIO.write(img,"jpg",tmp);
-      }
-      catch(IOException ioe){}
+      //File tmp = new File("temp"+sector.getX()+sector.getY());
+      //try{
+        // ImageIO.write(img,"jpg",tmp);
+      //}
+      //catch(IOException ioe){}
       
    }
    public Sector getSector(){
