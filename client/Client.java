@@ -7,7 +7,7 @@
  * @version 11-9-2018
  * @Purpose FINAL PROJECT
  */
-
+ 
 import javafx.application.*;
 import javafx.event.*;
 import javafx.scene.*;
@@ -280,6 +280,7 @@ public class Client extends Application implements EventHandler<ActionEvent>{
          BufferedImage buff = ImageIO.read(file);
          ByteArrayOutputStream baos = new ByteArrayOutputStream();
          ImageIO.write(buff,extension,baos);
+        
          //send colored file
          baos.flush();
          out.writeObject(baos.toByteArray());
@@ -293,11 +294,14 @@ public class Client extends Application implements EventHandler<ActionEvent>{
          ByteArrayInputStream bais= new ByteArrayInputStream((byte[])in.readObject());
          
          BufferedImage rcvdImg = ImageIO.read(bais);
-         File temp = new File("temp");
+         if (fileName.indexOf(".") > 0)
+            fileName = fileName.substring(0, fileName.lastIndexOf("."));       
+         File temp = new File(fileName + "_" + radioChoice + "." + extension); //making a new file
+         
          taLog.appendText("recieved object");
          taLog.appendText("Read object");
          ImageIO.write(rcvdImg,extension,temp);
-         System.out.println("getting file back...");
+         System.out.println("getting file back...\n");
          //BufferedImage image =  ImageIO.iin.readObject(); 
          //System.out.println("Gots the file");
          //ImageIO.write(image, extension, tmp);
@@ -311,8 +315,8 @@ public class Client extends Application implements EventHandler<ActionEvent>{
       
       catch (Exception e){
         
-        System.out.println(e.getStackTrace().toString());
-        taLog.appendText("Error during transmission: " + e + "\n");
+         System.out.println(e.getStackTrace().toString());
+         taLog.appendText("Error during transmission: " + e + "\n");
       }
    }
 }
