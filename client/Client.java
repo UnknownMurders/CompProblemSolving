@@ -7,7 +7,7 @@
  * @version 11-9-2018
  * @Purpose FINAL PROJECT
  */
- 
+
 import javafx.application.*;
 import javafx.event.*;
 import javafx.scene.*;
@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 
-public class Client extends Application implements EventHandler<ActionEvent>{
+public class Client extends Application implements EventHandler<ActionEvent>, Serializable {
    // Window Attributes
    private Stage stage;
    private Scene scene;
@@ -233,17 +233,17 @@ public class Client extends Application implements EventHandler<ActionEvent>{
       {
          out.writeLong(fileLength);
          out.flush();
-         receivedDouble = in.readLong();
+       // receivedDouble = in.readLong();
          taLog.appendText(fileLength + " has been successfully sent!\n");
          
          String fullName = selectedFile.getAbsolutePath();
-         out.writeUTF(fileName);
+         out.writeUTF(fullName);
          out.flush();
-         receivedString = in.readUTF();
-         taLog.appendText(fileName + " has been successfully sent!\n");
+        // receivedString = in.readUTF();
+         taLog.appendText(fullName + " has been successfully sent!\n");
          
-         int dot = fileName.lastIndexOf(".");
-         extension = fileName.substring(dot+1);
+         int dot = fullName.lastIndexOf(".");
+         extension = fullName.substring(dot+1);
          out.writeUTF(extension);
          out.flush();
          
@@ -275,48 +275,42 @@ public class Client extends Application implements EventHandler<ActionEvent>{
          taLog.appendText(radioChoice + " has been successfully sent!\n");
          
          
-         taLog.appendText("Sending File");
+       
          File file = new File(fullName);
-         BufferedImage buff = ImageIO.read(file);
-         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-         ImageIO.write(buff,extension,baos);
-        
+         
          //send colored file
-         baos.flush();
-         out.writeObject(baos.toByteArray());
-         taLog.appendText("Successfully Sent File");
+         out.writeObject(file);
+         out.flush();
+         
+         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+         
+         // Determine where to save the file.
+         File savedFile = fileChooser.showSaveDialog(stage);
+         
+         //read new image
+      //        BufferedImage image =  (BufferedImage)in.readObject(); 
+        
+      //         ImageIO.write(image, extension, baos);
+         
+      //         byte[] byteFile= baos.toByteArray();
       
-         //File savedFile = fileChooser.showSaveDialog(stage);         
-         //read in and write to file greyscale image
-         //BufferedImage image =  (BufferedImage)in.readObject();
-         //ImageIO.write(image, extension, savedFile);
+         // Read in the converted file from the Server
+         System.out.println("Reading in the ByteBuffer from the Server");
+         byte[] byteFile = (byte[]) in.readObject();
          
-         ByteArrayInputStream bais= new ByteArrayInputStream((byte[])in.readObject());
-         
-         BufferedImage rcvdImg = ImageIO.read(bais);
-         if (fileName.indexOf(".") > 0)
-            fileName = fileName.substring(0, fileName.lastIndexOf("."));       
-         File temp = new File(fileName + "_" + radioChoice + "." + extension); //making a new file
-         
-         taLog.appendText("recieved object");
-         taLog.appendText("Read object");
-         ImageIO.write(rcvdImg,extension,temp);
-         System.out.println("getting file back...\n");
-         //BufferedImage image =  ImageIO.iin.readObject(); 
-         //System.out.println("Gots the file");
-         //ImageIO.write(image, extension, tmp);
-         //byte[] byteFile=tmp.toByteArray();
-         //try(FileOutputStream fos = new FileOutputStream(savedFile)){
-           // fos.write(byteFile);
-         //}
+         // Write out the file from the server to a local file.   
+         System.out.println("Writing the file.");
+         try(FileOutputStream fos = new FileOutputStream(savedFile))
+         {
+            fos.write(byteFile);
+            fos.close();
+         }
       }
       
-      //lets see if it works
-      
       catch (Exception e){
-        
-         System.out.println(e.getStackTrace().toString());
-         taLog.appendText("Error during transmission: " + e + "\n");
+         e.printStackTrace();
+         System.out.println(e);
+      
       }
    }
 }
