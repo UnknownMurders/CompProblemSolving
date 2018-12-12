@@ -277,13 +277,20 @@ public class Client extends Application implements EventHandler<ActionEvent>, Se
          
        
          File file = new File(fullName);
+<<<<<<< HEAD
          
+=======
+         BufferedImage buff = ImageIO.read(file);
+         ByteArrayOutputStream baos = new ByteArrayOutputStream();
+         ImageIO.write(buff,extension,baos);
+>>>>>>> parent of f4548b9... bugfix
          //send colored file
          out.writeObject(file);
          out.flush();
          
          ByteArrayOutputStream baos = new ByteArrayOutputStream();
          
+<<<<<<< HEAD
          // Determine where to save the file.
          File savedFile = fileChooser.showSaveDialog(stage);
          
@@ -293,6 +300,22 @@ public class Client extends Application implements EventHandler<ActionEvent>, Se
       //         ImageIO.write(image, extension, baos);
          
       //         byte[] byteFile= baos.toByteArray();
+=======
+         BufferedImage rcvdImg = ImageIO.read(bais);
+         File temp = new File("temp");
+         taLog.appendText("recieved object");
+         taLog.appendText("Read object");
+         ImageIO.write(rcvdImg,extension,temp);
+         System.out.println("getting file back...");
+         //BufferedImage image =  ImageIO.iin.readObject(); 
+         //System.out.println("Gots the file");
+         //ImageIO.write(image, extension, tmp);
+         //byte[] byteFile=tmp.toByteArray();
+         //try(FileOutputStream fos = new FileOutputStream(savedFile)){
+           // fos.write(byteFile);
+         //}
+      }
+>>>>>>> parent of f4548b9... bugfix
       
          // Read in the converted file from the Server
          System.out.println("Reading in the ByteBuffer from the Server");
@@ -308,9 +331,15 @@ public class Client extends Application implements EventHandler<ActionEvent>, Se
       }
       
       catch (Exception e){
+<<<<<<< HEAD
          e.printStackTrace();
          System.out.println(e);
       
+=======
+        
+        System.out.println(e.getStackTrace().toString());
+        taLog.appendText("Error during transmission: " + e + "\n");
+>>>>>>> parent of f4548b9... bugfix
       }
    }
 }
