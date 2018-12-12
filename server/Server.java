@@ -303,19 +303,19 @@ public class Server extends Application implements EventHandler<ActionEvent>, Se
       
       
          
-         // on EOF, client has disconnected 
-         try {
-            // Close the Socket and the streams
-            cSocket.close();
-            in.close();
-            out.close();
-         }
-         catch(IOException ioe) {
-            log(clientId + " IO Exception (3): "+ ioe + "\n");
-            return;
-         }
-         
-         log(clientId + " Client disconnected!\n");
+//          // on EOF, client has disconnected 
+//          try {
+//             // Close the Socket and the streams
+//             cSocket.close();
+//             in.close();
+//             out.close();
+//          }
+//          catch(IOException ioe) {
+//             log(clientId + " IO Exception (3): "+ ioe + "\n");
+//             return;
+//          }
+//          
+//          log(clientId + " Client disconnected!\n");
       }  
    } // End of inner class
    
