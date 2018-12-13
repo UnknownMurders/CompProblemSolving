@@ -284,23 +284,22 @@ public class Client extends Application implements EventHandler<ActionEvent>, Se
          
          ByteArrayOutputStream baos = new ByteArrayOutputStream();
          
-         // Determine where to save the file.
-         File savedFile = fileChooser.showSaveDialog(stage);
+         String fileNameProcessedFull = file.getName();
+         int dotIndex = fileNameProcessedFull.lastIndexOf(".");
+         String fileNameWanted = fileNameProcessedFull.substring(0, dotIndex);
+         System.out.println(fileNameWanted);
          
-         //read new image
-      //        BufferedImage image =  (BufferedImage)in.readObject(); 
-        
-      //         ImageIO.write(image, extension, baos);
-         
-      //         byte[] byteFile= baos.toByteArray();
-      
+     String workingDirectory = System.getProperty("user.dir");
+     
+     String absoluteFilePath = workingDirectory + File.separator + fileNameWanted + "_"+ radioChoice+ "."+ extension;
+     System.out.println(absoluteFilePath);
          // Read in the converted file from the Server
          System.out.println("Reading in the ByteBuffer from the Server");
          byte[] byteFile = (byte[]) in.readObject();
          
          // Write out the file from the server to a local file.   
          System.out.println("Writing the file.");
-         try(FileOutputStream fos = new FileOutputStream(savedFile))
+         try(FileOutputStream fos = new FileOutputStream(absoluteFilePath))
          {
             fos.write(byteFile);
             fos.close();

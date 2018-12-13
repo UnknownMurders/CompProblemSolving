@@ -209,6 +209,8 @@ public class Client extends Application implements EventHandler<ActionEvent>, Se
     */
    private void doSendImage() {
    
+    try 
+      {
       int i = 0;
       
       FileChooser fileChooser = new FileChooser();
@@ -229,8 +231,7 @@ public class Client extends Application implements EventHandler<ActionEvent>, Se
      // ObjectInputStream in = null;
      // ObjectOutputStream out = null;
       
-      try 
-      {
+     
          out.writeLong(fileLength);
          out.flush();
        // receivedDouble = in.readLong();

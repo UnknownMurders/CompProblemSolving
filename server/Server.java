@@ -180,15 +180,7 @@ public class Server extends Application implements EventHandler<ActionEvent>, Se
             log(clientId + " IO Exception (ClientThread): "+ ioe + "\n");
             return;
          }
-         
-         // ADD CODING IN THIS HERE //
-         // - Received from Client
-         // - Display 6-8 Images
-         // - Sent back to Server
-         
-         
-      
-      // EXAMPLE -->  BUT PLEASE ADJUST IT AS WELL. <--   
+     
          try {
             
             long size = in.readLong();
@@ -303,19 +295,19 @@ public class Server extends Application implements EventHandler<ActionEvent>, Se
       
       
          
-//          // on EOF, client has disconnected 
-//          try {
-//             // Close the Socket and the streams
-//             cSocket.close();
-//             in.close();
-//             out.close();
-//          }
-//          catch(IOException ioe) {
-//             log(clientId + " IO Exception (3): "+ ioe + "\n");
-//             return;
-//          }
-//          
-//          log(clientId + " Client disconnected!\n");
+         // on EOF, client has disconnected 
+         try {
+            // Close the Socket and the streams
+            cSocket.close();
+            in.close();
+            out.close();
+         }
+         catch(IOException ioe) {
+            log(clientId + " IO Exception (3): "+ ioe + "\n");
+            return;
+         }
+         
+         log(clientId + " Client disconnected!\n");
       }  
    } // End of inner class
    
