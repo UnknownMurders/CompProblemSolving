@@ -299,7 +299,7 @@ public class Server extends Application implements EventHandler<ActionEvent>{
           
          }
          catch(IOException ioe){
-          log(clientId+"Connection Closed");
+          log(clientId+"Connection Closed\n");
          }
          // }
          catch(Exception e) {
